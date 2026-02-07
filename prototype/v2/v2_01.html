@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>竞赛看板 - 列表视图与详情抽屉</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#196ee6",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111821",
+                        "surface-dark": "#1e293b",
+                        "border-dark": "#334155",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen overflow-hidden flex flex-col antialiased selection:bg-primary/30 selection:text-primary-100">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-border-dark px-6 py-3 bg-white dark:bg-[#111822] shrink-0 z-20 relative">
+<div class="flex items-center gap-6">
+<!-- Brand -->
+<div class="flex items-center gap-3 text-slate-900 dark:text-white">
+<div class="size-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">dashboard</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight">竞赛看板</h2>
+</div>
+<!-- View Switcher -->
+<div class="hidden md:flex h-9 items-center rounded-lg bg-slate-100 dark:bg-surface-dark p-1 border border-transparent dark:border-border-dark">
+<label class="cursor-pointer h-full flex items-center justify-center rounded px-3 bg-white dark:bg-[#111822] shadow-sm text-primary dark:text-white text-sm font-medium transition-all">
+<span class="material-symbols-outlined text-[18px] mr-1.5">format_list_bulleted</span>
+<span>列表</span>
+<input checked="" class="hidden" name="view" type="radio"/>
+</label>
+<label class="cursor-pointer h-full flex items-center justify-center rounded px-3 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium transition-all">
+<span class="material-symbols-outlined text-[18px] mr-1.5">calendar_month</span>
+<span>日历</span>
+<input class="hidden" name="view" type="radio"/>
+</label>
+</div>
+</div>
+<!-- Search & Actions -->
+<div class="flex items-center gap-4">
+<!-- Global Search -->
+<div class="hidden lg:flex w-64 items-center gap-2 rounded-lg bg-slate-100 dark:bg-surface-dark px-3 py-1.5 border border-transparent focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 transition-all">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+<input class="w-full bg-transparent border-none p-0 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-0" placeholder="搜索竞赛、事件..." type="text"/>
+<div class="flex items-center gap-0.5 text-[10px] text-slate-400 border border-slate-300 dark:border-slate-600 rounded px-1">
+<span>⌘</span><span>K</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-2">
+<button class="size-9 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-surface-dark text-slate-500 dark:text-slate-400 transition-colors" title="筛选">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+<button class="size-9 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-surface-dark text-slate-500 dark:text-slate-400 transition-colors" title="AI助手">
+<span class="material-symbols-outlined text-[20px] filled">colors_spark</span>
+</button>
+<button class="size-9 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-surface-dark text-slate-500 dark:text-slate-400 transition-colors" title="深色模式">
+<span class="material-symbols-outlined text-[20px]">dark_mode</span>
+</button>
+<div class="w-px h-6 bg-slate-200 dark:bg-border-dark mx-1"></div>
+<div class="size-8 rounded-full bg-slate-200 dark:bg-surface-dark overflow-hidden ring-2 ring-transparent hover:ring-primary/50 cursor-pointer transition-all">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCZOfkjzSe4WHnZLNtlVqEG9Zc6M5VK4aVhgLtJDTKOIKf2nnrXl9n8vPEag8SdD3yde-K2GcuzLuioo8-X4F44uAGgwXXfOR5K23l_jdHiUDyE06aRErrl__LcVGySzhtZr80e__GLQL0C5WiqHXxb5a7ZwHVpHf7-Aab2BCWNsP02AIn7XTLZC8guJrH8bqISlx6BxWHqtOVq1SHY0GP13gKJyMM0IRQVzcH8wRHEjMMu9_gk0c-V2qRSJRjMyueMv73NIQtzgqc"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<div class="flex flex-1 overflow-hidden relative">
+<!-- Left Panel: Event List -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-background-dark/50">
+<div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 pb-32">
+<!-- Today Group -->
+<section>
+<div class="flex items-center justify-between mb-4 sticky top-0 bg-white/95 dark:bg-[#111822]/95 backdrop-blur-sm py-2 z-10">
+<h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+<span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                            今天
+                        </h3>
+<span class="text-xs text-slate-400">10月 24日, 星期四</span>
+</div>
+<div class="space-y-3">
+<!-- Active Item -->
+<div class="group relative flex items-center gap-4 p-4 rounded-xl border border-primary/40 bg-primary/5 dark:bg-primary/10 shadow-sm transition-all cursor-pointer hover:shadow-md">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-xl"></div>
+<div class="flex flex-col items-center justify-center min-w-[3rem] text-center">
+<span class="text-xs font-medium text-primary uppercase">10月</span>
+<span class="text-xl font-bold text-slate-900 dark:text-white">24</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<h4 class="text-base font-semibold text-slate-900 dark:text-white truncate">ICPC 亚洲区域赛 - 报名截止</h4>
+<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800">
+                                        截止日
+                                    </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">所属竞赛：ICPC 国际大学生程序设计竞赛</p>
+</div>
+<div class="hidden sm:flex items-center gap-3">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#111822] bg-slate-200" data-alt="avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCMuQ5bGFbcEpOgGvQAgUb8eetHC3dcvKtxvARx-L_qdI87WaXGQjVW57UsYly5TDiSyOW6AiFSN6OuySEUb7b50y5bH1oG5wKuAXaIJznrpLrb42LbVoZp_ScjuZn6fw8OC1cnmbo0-k_YttgbGvoMBRTU5uiFBT3IeQOHezoUn4iku166gehg0BUq9RYVPwBqlk2hiq-hQtZj0323eNzBWxKlWrMTg49Jf9ZSdUflRcH9fFcFHG5AQZokrZbYZk8HX4EX-FWATxhi'); background-size: cover;"></div>
+<div class="size-6 rounded-full border-2 border-white dark:border-[#111822] bg-slate-200" data-alt="avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAqJeJIA1IZKt9UvRs3KTyS92INO_rqIV6A6WeW5qn1Ns9acqcbNT0nVmw7AUiG96G8RX6y3veL4BIxIP52yX1DQU-4iHPvsZjGjhPW_ROJbaaDJHAkox_mPBbBtQN9Dt3UzmsoILt4Fj-Z3FFDmeUy-gtfAHf_12qRkt7LLd8-GMSDYoZp1MnPsogaSTMzaQWFAPq8t9d5qH6zEdGSoWaD7xjtrc2mEkiW-wo2dhI0kLAdI_U_y-Cz5Kgv3R_VOTpZJt-XMDRaTwCb'); background-size: cover;"></div>
+</div>
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-primary/20 text-primary border border-blue-200 dark:border-primary/30">
+                                    规划中
+                                </span>
+</div>
+<button class="p-2 text-slate-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Item 2 -->
+<div class="group relative flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-border-dark bg-white dark:bg-surface-dark hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer">
+<div class="flex flex-col items-center justify-center min-w-[3rem] text-center opacity-70">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">10月</span>
+<span class="text-xl font-bold text-slate-900 dark:text-white">24</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<h4 class="text-base font-semibold text-slate-900 dark:text-white truncate">团队周会 - 进度同步</h4>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">所有成员</p>
+</div>
+<div class="hidden sm:flex items-center gap-3">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    进行中
+                                </span>
+</div>
+</div>
+</div>
+</section>
+<!-- This Week Group -->
+<section>
+<div class="flex items-center justify-between mb-4 sticky top-0 bg-white/95 dark:bg-[#111822]/95 backdrop-blur-sm py-2 z-10">
+<h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">本周</h3>
+</div>
+<div class="space-y-3">
+<div class="group relative flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-border-dark bg-white dark:bg-surface-dark hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer">
+<div class="flex flex-col items-center justify-center min-w-[3rem] text-center opacity-70">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">10月</span>
+<span class="text-xl font-bold text-slate-900 dark:text-white">27</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<h4 class="text-base font-semibold text-slate-900 dark:text-white truncate">Kaggle Titanic - 结果提交</h4>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">所属竞赛：Kaggle 入门赛</p>
+</div>
+<div class="hidden sm:flex items-center gap-3">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
+                                    已完成
+                                </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Later Group -->
+<section>
+<div class="flex items-center justify-between mb-4 sticky top-0 bg-white/95 dark:bg-[#111822]/95 backdrop-blur-sm py-2 z-10">
+<h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">更晚</h3>
+</div>
+<div class="space-y-3">
+<div class="group relative flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-border-dark bg-white dark:bg-surface-dark hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer">
+<div class="flex flex-col items-center justify-center min-w-[3rem] text-center opacity-70">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">11月</span>
+<span class="text-xl font-bold text-slate-900 dark:text-white">05</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-base font-semibold text-slate-900 dark:text-white truncate">MathorCup 建模挑战赛</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">预报名开启</p>
+</div>
+<div class="hidden sm:flex items-center gap-3">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    未开始
+                                </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Expired Group (Collapsed) -->
+<section class="opacity-60 hover:opacity-100 transition-opacity">
+<button class="flex items-center gap-2 w-full text-left mb-3 group">
+<span class="material-symbols-outlined text-slate-400 text-sm transition-transform group-hover:rotate-90">chevron_right</span>
+<h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">已过期 (1)</h3>
+<div class="h-px bg-slate-200 dark:bg-border-dark flex-1 ml-2"></div>
+</button>
+<div class="hidden"> <!-- Ideally controlled by JS, keeping structure here -->
+<div class="group relative flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-border-dark bg-slate-50 dark:bg-[#151e2a] grayscale transition-all">
+<div class="flex flex-col items-center justify-center min-w-[3rem] text-center opacity-50">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">9月</span>
+<span class="text-xl font-bold text-slate-900 dark:text-white">15</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-base font-semibold text-slate-700 dark:text-slate-300 line-through truncate">教育科技 Hackathon</h4>
+<p class="text-sm text-slate-400 truncate">未提交作品</p>
+</div>
+<div class="hidden sm:flex items-center gap-3">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-800 text-slate-500 border border-slate-300 dark:border-slate-700">
+                                    已错过
+                                </span>
+</div>
+</div>
+</div>
+<!-- Placeholder showing one item just for visual completeness in static design -->
+<div class="group relative flex items-center gap-4 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0f141c] hover:bg-slate-100 dark:hover:bg-[#151e2a] transition-all cursor-not-allowed">
+<div class="flex flex-col items-center justify-center min-w-[3rem] text-center opacity-50">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">9月</span>
+<span class="text-xl font-bold text-slate-900 dark:text-white">15</span>
+</div>
+<div class="flex-1 min-w-0 opacity-60">
+<h4 class="text-base font-semibold text-slate-900 dark:text-white line-through truncate">教育科技 Hackathon</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">未提交作品</p>
+</div>
+<div class="hidden sm:flex items-center gap-3 opacity-60">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-800 text-slate-500 border border-slate-300 dark:border-slate-700">
+                                已错过
+                            </span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Right Drawer: Detail View -->
+<!-- Overlay/Backdrop effect on mobile, side-by-side on desktop -->
+<aside class="w-[480px] shrink-0 border-l border-slate-200 dark:border-border-dark bg-white dark:bg-surface-dark flex flex-col shadow-2xl relative z-30 transition-transform duration-300 transform translate-x-0">
+<!-- Drawer Header -->
+<div class="flex items-start justify-between p-6 border-b border-slate-100 dark:border-border-dark">
+<div class="flex-1 pr-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="inline-flex items-center justify-center size-6 rounded bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-[16px]">code</span>
+</span>
+<span class="text-xs font-medium text-primary uppercase tracking-wide">算法竞赛</span>
+</div>
+<h2 class="text-xl font-bold text-slate-900 dark:text-white leading-tight">ICPC 校内选拔赛 2026</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">主办方：计算机学院学生会</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Drawer Content -->
+<div class="flex-1 overflow-y-auto p-6 space-y-8">
+<!-- Status Toggles -->
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 flex flex-col gap-3 relative overflow-hidden">
+<div class="flex justify-between items-start z-10">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-200">纳入规划</span>
+<div class="relative inline-flex h-5 w-9 items-center rounded-full bg-primary transition-colors cursor-pointer">
+<span class="translate-x-4 inline-block size-3.5 transform rounded-full bg-white transition shadow-sm"></span>
+</div>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 z-10">已加入日程表</p>
+<span class="material-symbols-outlined absolute -right-2 -bottom-2 text-primary/10 text-[64px]">calendar_add_on</span>
+</div>
+<div class="p-4 rounded-xl border border-slate-200 dark:border-border-dark bg-white dark:bg-[#151e2a] flex flex-col gap-3 relative overflow-hidden opacity-80 hover:opacity-100 transition-opacity">
+<div class="flex justify-between items-start z-10">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-200">已报名</span>
+<div class="relative inline-flex h-5 w-9 items-center rounded-full bg-slate-300 dark:bg-slate-600 transition-colors cursor-pointer">
+<span class="translate-x-1 inline-block size-3.5 transform rounded-full bg-white transition shadow-sm"></span>
+</div>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 z-10">尚未完成报名</p>
+<span class="material-symbols-outlined absolute -right-2 -bottom-2 text-slate-200 dark:text-slate-700/30 text-[64px]">how_to_reg</span>
+</div>
+</div>
+<!-- Date Pickers Section -->
+<div class="space-y-4">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-[18px]">event</span>
+                        关键时间节点
+                    </h3>
+<div class="space-y-3">
+<div class="flex items-center gap-3">
+<div class="w-1 h-10 rounded-full bg-orange-400"></div>
+<div class="flex-1">
+<label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">报名截止</label>
+<input class="w-full bg-slate-50 dark:bg-[#151e2a] border border-slate-200 dark:border-border-dark rounded-lg text-sm text-slate-900 dark:text-white px-3 py-2 focus:ring-1 focus:ring-primary focus:border-primary" type="date" value="2026-03-15"/>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-1 h-10 rounded-full bg-blue-400"></div>
+<div class="flex-1">
+<label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">作品提交</label>
+<input class="w-full bg-slate-50 dark:bg-[#151e2a] border border-slate-200 dark:border-border-dark rounded-lg text-sm text-slate-900 dark:text-white px-3 py-2 focus:ring-1 focus:ring-primary focus:border-primary" type="date" value="2026-04-01"/>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-1 h-10 rounded-full bg-purple-400"></div>
+<div class="flex-1">
+<label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">结果公布</label>
+<input class="w-full bg-slate-50 dark:bg-[#151e2a] border border-slate-200 dark:border-border-dark rounded-lg text-sm text-slate-900 dark:text-white px-3 py-2 focus:ring-1 focus:ring-primary focus:border-primary" type="date" value="2026-04-10"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Status/Notes -->
+<div class="space-y-2">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-[18px]">sticky_note_2</span>
+                        当前状态备注
+                    </h3>
+<textarea class="w-full h-24 bg-slate-50 dark:bg-[#151e2a] border border-slate-200 dark:border-border-dark rounded-lg text-sm text-slate-900 dark:text-white p-3 focus:ring-1 focus:ring-primary focus:border-primary resize-none placeholder-slate-400" placeholder="填写备忘录，例如：需要准备学生证复印件..."></textarea>
+</div>
+<!-- Team Members -->
+<div class="space-y-3">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-[18px]">group</span>
+                        队员名单
+                    </h3>
+<div class="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-[#151e2a] rounded-lg border border-slate-200 dark:border-border-dark min-h-[3rem]">
+<div class="flex items-center gap-1 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 px-2 py-1 rounded text-xs font-medium text-slate-700 dark:text-slate-300 shadow-sm">
+<div class="size-4 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[8px]">A</div>
+                            @Alex
+                            <button class="hover:text-red-500 ml-1"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+<div class="flex items-center gap-1 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 px-2 py-1 rounded text-xs font-medium text-slate-700 dark:text-slate-300 shadow-sm">
+<div class="size-4 rounded-full bg-pink-500 text-white flex items-center justify-center text-[8px]">S</div>
+                            @Sarah
+                            <button class="hover:text-red-500 ml-1"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+<input class="flex-1 bg-transparent border-none text-xs focus:ring-0 p-1 min-w-[60px] text-slate-900 dark:text-white placeholder-slate-400" placeholder="+ 添加队员" type="text"/>
+</div>
+</div>
+<!-- Links -->
+<div class="space-y-3 pb-6">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-[18px]">link</span>
+                        相关链接
+                    </h3>
+<ul class="space-y-2">
+<li class="flex items-center gap-3 group cursor-pointer p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#151e2a] transition-colors">
+<div class="size-8 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+<span class="material-symbols-outlined text-[18px]">language</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-medium text-slate-900 dark:text-white truncate">ICPC Global 官网</p>
+<p class="text-xs text-slate-400 truncate">icpc.global</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary text-[18px]">open_in_new</span>
+</li>
+<li class="flex items-center gap-3 group cursor-pointer p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#151e2a] transition-colors">
+<div class="size-8 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+<span class="material-symbols-outlined text-[18px]">school</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-medium text-slate-900 dark:text-white truncate">校内通知页</p>
+<p class="text-xs text-slate-400 truncate">school.edu/contest/2026</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary text-[18px]">open_in_new</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Drawer Footer -->
+<div class="p-6 border-t border-slate-200 dark:border-border-dark bg-slate-50 dark:bg-[#151e2a]/50 flex gap-3">
+<button class="flex-1 px-4 py-2.5 bg-primary hover:bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-sm shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                    保存更改
+                </button>
+<button class="px-4 py-2.5 bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors">
+                    取消
+                </button>
+</div>
+</aside>
+</div>
+</body></html>

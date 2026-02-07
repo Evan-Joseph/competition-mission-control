@@ -1,32 +1,96 @@
 import { json, errorJson, readJson } from "../_lib/http.js";
 import { requireDB, dbAll } from "../_lib/db.js";
-import { parseISODate, daysBetween } from "../_lib/time.js";
+
+const YMD_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function isYMD(s) {
+  return YMD_RE.test(String(s || "").trim());
+}
 
 function envStr(env, key, fallback = null) {
   const v = env && env[key];
   return v ? String(v) : fallback;
 }
 
-function computeNextDeadline(row, now) {
-  const candidates = [
-    { key: "registration_end", label: "报名截止", date: parseISODate(row.registration_end) },
-    { key: "submission_end", label: "提交截止", date: parseISODate(row.submission_end) },
-    { key: "result_end", label: "结果公布", date: parseISODate(row.result_end) },
-  ].filter((c) => c.date);
+function trim(s, max = 800) {
+  if (!s) return "";
+  const x = String(s);
+  return x.length > max ? x.slice(0, max) + "…" : x;
+}
 
-  const future = candidates.filter((c) => c.date.getTime() >= now.getTime()).sort((a, b) => a.date - b.date);
-  if (future.length > 0) {
-    const c = future[0];
-    return { key: c.key, label: c.label, dateISO: c.date.toISOString().slice(0, 10), daysLeft: daysBetween(now, c.date) };
+function parseJsonArray(raw, fallback = []) {
+  if (!raw) return fallback;
+  try {
+    const v = JSON.parse(String(raw));
+    return Array.isArray(v) ? v : fallback;
+  } catch {
+    return fallback;
   }
+}
 
-  const past = candidates.sort((a, b) => b.date - a.date);
-  if (past.length > 0) {
-    const c = past[0];
-    return { key: c.key, label: c.label, dateISO: c.date.toISOString().slice(0, 10), daysLeft: -daysBetween(c.date, now) };
+function rowToCompetition(r) {
+  return {
+    id: r.id,
+    name: r.name,
+    registration_deadline_at: r.registration_deadline_at,
+    submission_deadline_at: r.submission_deadline_at || null,
+    result_deadline_at: r.result_deadline_at || null,
+    included_in_plan: Boolean(r.included_in_plan),
+    registered: Boolean(r.registered),
+    status_text: trim(r.status_text || "", 600),
+    team_members: parseJsonArray(r.team_members, []).map((x) => String(x)).filter(Boolean),
+    links: parseJsonArray(r.links, [])
+      .map((x) => {
+        if (typeof x === "string") return { title: "", url: x };
+        if (x && typeof x === "object") return { title: String(x.title || ""), url: String(x.url || "") };
+        return null;
+      })
+      .filter((x) => x && x.url),
+  };
+}
+
+function isMissedRegistration(c, todayISO) {
+  return c.registration_deadline_at < todayISO && !c.registered;
+}
+
+function safeExtractJsonObject(text) {
+  const s = String(text || "").trim();
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    // Try to salvage: extract first {...} block.
+    const i = s.indexOf("{");
+    const j = s.lastIndexOf("}");
+    if (i === -1 || j === -1 || j <= i) return null;
+    try {
+      return JSON.parse(s.slice(i, j + 1));
+    } catch {
+      return null;
+    }
   }
+}
 
-  return null;
+function normalizeActions(actions) {
+  if (!Array.isArray(actions)) return [];
+  const out = [];
+  for (const a of actions.slice(0, 20)) {
+    if (!a || typeof a !== "object") continue;
+    if (a.type !== "update_competition") continue;
+    const competition_id = String(a.competition_id || "").trim();
+    if (!competition_id) continue;
+    const patch = a.patch && typeof a.patch === "object" ? a.patch : null;
+    if (!patch) continue;
+    out.push({
+      id: String(a.id || "") || "action_" + crypto.randomUUID().replaceAll("-", ""),
+      type: "update_competition",
+      title: String(a.title || "").trim() || "更新竞赛",
+      competition_id,
+      patch,
+      reason: a.reason ? String(a.reason) : undefined,
+    });
+  }
+  return out;
 }
 
 export async function onRequest(context) {
@@ -47,6 +111,9 @@ export async function onRequest(context) {
 
   const message = String(body.message || "").trim();
   if (!message) return errorJson(400, "message is required");
+
+  const todayISO = isYMD(body.todayISO) ? String(body.todayISO) : new Date().toISOString().slice(0, 10);
+  const includeMissed = Boolean(body.includeMissed);
   const useWebSearch = Boolean(body.useWebSearch);
 
   const apiKey = envStr(env, "GLM_API_KEY");
@@ -58,89 +125,48 @@ export async function onRequest(context) {
   const model = envStr(env, "GLM_MODEL", "glm-4.7-flash");
   const bochaKey = envStr(env, "BOCHA_API_KEY");
 
-  const members = await dbAll(
-    db.prepare(`SELECT id, name FROM members ORDER BY created_at ASC`)
-  );
-
-  const competitions = await dbAll(
+  const rows = await dbAll(
     db.prepare(
       `SELECT
-         c.id,
-         c.name,
-         c.variant,
-         c.display_name,
-         c.source_tag,
-         c.type_tags_json,
-         c.offline_defense,
-         c.schedule_basis_year,
-         c.registration_start, c.registration_end,
-         c.submission_start, c.submission_end,
-         c.result_start, c.result_end,
-         c.registration_text, c.submission_text, c.result_text,
-         c.evidence_links_json,
-         c.notes,
-         p.state AS progress_state,
-         p.state_detail AS progress_state_detail,
-         p.award AS progress_award,
-         p.owner_member_id AS progress_owner_member_id,
-         p.risk_level AS progress_risk_level,
-         p.notes AS progress_notes,
-         p.updated_at AS progress_updated_at
-       FROM competitions c
-       LEFT JOIN competition_progress p ON p.competition_id = c.id
-       ORDER BY c.display_name COLLATE NOCASE ASC`
+         id,
+         name,
+         registration_deadline_at,
+         submission_deadline_at,
+         result_deadline_at,
+         included_in_plan,
+         registered,
+         status_text,
+         team_members,
+         links
+       FROM competitions
+       ORDER BY registration_deadline_at ASC, name COLLATE NOCASE ASC`
     )
   );
 
-  // Keep context bounded (Flash models are fast but still have context limits).
-  const trim = (s, max = 500) => {
-    if (!s) return null;
-    const x = String(s);
-    return x.length > max ? x.slice(0, max) + "…" : x;
-  };
-
-  const now = new Date();
-  const compactCompetitions = competitions.map((c) => ({
-    id: c.id,
-    name: c.name,
-    variant: c.variant,
-    display_name: c.display_name,
-    source_tag: c.source_tag,
-    type_tags_json: c.type_tags_json,
-    offline_defense: c.offline_defense,
-    schedule_basis_year: c.schedule_basis_year,
-    registration_start: c.registration_start,
-    registration_end: c.registration_end,
-    submission_start: c.submission_start,
-    submission_end: c.submission_end,
-    result_start: c.result_start,
-    result_end: c.result_end,
-    registration_text: trim(c.registration_text, 160),
-    submission_text: trim(c.submission_text, 160),
-    result_text: trim(c.result_text, 160),
-    evidence_links_json: c.evidence_links_json,
-    notes: trim(c.notes, 400),
-    nextDeadline: computeNextDeadline(c, now),
-    progress_state: c.progress_state,
-    progress_state_detail: trim(c.progress_state_detail, 120),
-    progress_award: trim(c.progress_award, 80),
-    progress_owner_member_id: c.progress_owner_member_id,
-    progress_risk_level: c.progress_risk_level,
-    progress_notes: trim(c.progress_notes, 400),
-    progress_updated_at: c.progress_updated_at,
-  }));
+  let competitions = rows.map(rowToCompetition);
+  if (!includeMissed) competitions = competitions.filter((c) => !isMissedRegistration(c, todayISO));
 
   const system = [
-    "你是团队内部的『竞赛作战面板』AI 助手。",
-    "只基于我提供的数据回答；不确定就明确说不确定，并给出你需要的补充信息。",
-    "默认用中文回答，给出可执行的结论：最近/最急/按负责人/下一步动作建议。",
-    "如果开启了联网搜索，请结合搜索结果回答，并在关键结论后给出来源链接。",
+    "你是团队内部的『竞赛规划看板』AI 助手。",
+    "你只能基于我提供的 JSON 数据回答；不确定就明确说不确定，并说明需要什么补充信息。",
+    "你不会、也不能真实报名/提交/代办任何操作；你只能提出建议并生成『行动卡片』供用户确认后写入看板。",
+    "",
+    "输出格式要求：你必须输出一个 JSON 对象（不要输出 Markdown 代码块）。",
+    "JSON 结构：",
+    '{ "content": "中文回复文本", "actions": [ { "id": "...", "type": "update_competition", "title": "动作标题", "competition_id": "comp_xxx", "patch": { ... }, "reason": "可选理由" } ] }',
+    "",
+    "actions 说明：",
+    "- type 只能是 update_competition。",
+    "- competition_id 必须来自数据中的 competitions[].id。",
+    "- patch 只允许修改这些字段：included_in_plan, registered, registration_deadline_at, submission_deadline_at, result_deadline_at, status_text, team_members, links。",
+    "- 日期必须是 YYYY-MM-DD，或对 submission/result 设为 null。",
+    "",
+    "如果你没有任何安全可执行的动作，actions 必须是空数组。",
   ].join("\\n");
 
   const dataset = {
-    nowISO: now.toISOString(),
-    members,
-    competitions: compactCompetitions,
+    todayISO,
+    competitions,
   };
 
   let webSearchBlock = "";
@@ -151,10 +177,7 @@ export async function onRequest(context) {
       try {
         const r = await fetch("https://api.bochaai.com/v1/web-search", {
           method: "POST",
-          headers: {
-            "content-type": "application/json",
-            authorization: `Bearer ${bochaKey}`,
-          },
+          headers: { "content-type": "application/json", authorization: `Bearer ${bochaKey}` },
           body: JSON.stringify({ query: message, freshness: "oneYear", summary: true, count: 5 }),
         });
         const text = await r.text();
@@ -164,7 +187,6 @@ export async function onRequest(context) {
         } catch {
           j = null;
         }
-
         if (!r.ok) {
           webSearchBlock = `\\n\\n联网搜索：失败（HTTP ${r.status}）\\n${trim(text, 800) || ""}`;
         } else {
@@ -193,12 +215,7 @@ export async function onRequest(context) {
     { role: "system", content: system },
     {
       role: "user",
-      content:
-        "面板数据（JSON）：\\n" +
-        JSON.stringify(dataset) +
-        webSearchBlock +
-        "\\n\\n用户问题：\\n" +
-        message,
+      content: "看板数据（JSON）：\\n" + JSON.stringify(dataset) + webSearchBlock + "\\n\\n用户问题：\\n" + message,
     },
   ];
 
@@ -206,15 +223,8 @@ export async function onRequest(context) {
   try {
     resp = await fetch(baseUrl, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.2,
-      }),
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model, messages, temperature: 0.2 }),
     });
   } catch (e) {
     return errorJson(502, "AI request failed", { detail: String(e && e.message ? e.message : e) });
@@ -232,7 +242,11 @@ export async function onRequest(context) {
     return errorJson(502, "AI error", { status: resp.status, body: data });
   }
 
-  const content = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.delta?.content ?? "";
+  const raw = data?.choices?.[0]?.message?.content ?? "";
+  const parsed = safeExtractJsonObject(raw);
+  const content = parsed && typeof parsed.content === "string" ? parsed.content : String(raw || "");
+  const actions = parsed ? normalizeActions(parsed.actions) : [];
 
-  return json({ ok: true, reply: { content } });
+  return json({ ok: true, reply: { content, actions } });
 }
+

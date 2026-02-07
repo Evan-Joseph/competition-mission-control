@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>竞赛规划看板 - 日历月视图与AI助手</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#196ee6",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111821", // Deep dark background
+                        "surface-dark": "#1a2432",   // Slightly lighter for cards/panels
+                        "border-dark": "#2a3b55",    // Border color
+                        "text-secondary": "#93a9c8", // Muted text
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for better look in dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111821; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3b55; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b5275; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-border-dark bg-white dark:bg-[#111822] px-6 py-3 shrink-0 z-20">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-slate-900 dark:text-white">
+<div class="size-8 text-primary">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">竞赛规划看板</h2>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-500 dark:text-text-secondary hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">仪表盘</a>
+<a class="text-primary dark:text-white text-sm font-bold border-b-2 border-primary pb-0.5" href="#">日历</a>
+<a class="text-slate-500 dark:text-text-secondary hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">项目</a>
+<a class="text-slate-500 dark:text-text-secondary hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">团队</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search -->
+<div class="hidden lg:flex w-64 items-center bg-gray-100 dark:bg-surface-dark rounded-lg px-3 h-10 border border-transparent focus-within:border-primary transition-colors">
+<span class="material-symbols-outlined text-slate-400 dark:text-text-secondary text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-text-secondary" placeholder="搜索竞赛、任务..."/>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 dark:text-text-secondary hover:bg-gray-100 dark:hover:bg-surface-dark rounded-full transition-colors relative">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#111822]"></span>
+</button>
+<button class="p-2 text-slate-500 dark:text-text-secondary hover:bg-gray-100 dark:hover:bg-surface-dark rounded-full transition-colors">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-cover bg-center border border-gray-200 dark:border-border-dark ml-2 cursor-pointer" data-alt="User profile avatar showing a smiling person" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCtw1AeUbiee9OA8JMZW1UxemqkQnS5u0iwQ3ei2MXI2Bo2Xc04QdG-6HPEk6MsDIKVuHk3us3TQ2LDJQI3mI42qfyW0HnVCY4aopJxGL0obiPW8XqJsJWF9Q7QIrGWa8RvfgQMLVhlHfwXlYgjgL1hNKjukQKoGmD5z8g-qzmj3HXWQA4N_smVykreU2Pr9MPbY8ZRVOIgMUvJxfLJQbY6mDCaD0X8BoCh47JBLuhd4NS5CamlaVVUdgAZVOfKdL4iEmhGVOJDzgbk');"></div>
+</div>
+</div>
+</header>
+<!-- Main Content Layout -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Calendar Section (Left/Center) -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark relative">
+<!-- Calendar Header / Controls -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-border-dark bg-white dark:bg-[#111822]">
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-gray-100 dark:bg-surface-dark rounded-lg p-1">
+<button class="px-3 py-1.5 text-sm font-medium rounded text-slate-600 dark:text-text-secondary hover:bg-white dark:hover:bg-white/10 hover:shadow-sm transition-all">今天</button>
+<div class="w-px h-4 bg-gray-300 dark:bg-border-dark mx-1"></div>
+<button class="p-1.5 text-slate-600 dark:text-text-secondary hover:text-slate-900 dark:hover:text-white rounded hover:bg-white dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="p-1.5 text-slate-600 dark:text-text-secondary hover:text-slate-900 dark:hover:text-white rounded hover:bg-white dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">2026年 2月</h2>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex bg-gray-100 dark:bg-surface-dark rounded-lg p-1">
+<button class="px-4 py-1.5 text-sm font-medium bg-white dark:bg-primary text-primary dark:text-white shadow-sm rounded transition-all">月视图</button>
+<button class="px-4 py-1.5 text-sm font-medium text-slate-600 dark:text-text-secondary hover:text-slate-900 dark:hover:text-white transition-all">周视图</button>
+<button class="px-4 py-1.5 text-sm font-medium text-slate-600 dark:text-text-secondary hover:text-slate-900 dark:hover:text-white transition-all">日视图</button>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-900/20">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>新建日程</span>
+</button>
+</div>
+</div>
+<!-- Calendar Grid -->
+<div class="flex-1 overflow-y-auto p-6">
+<div class="h-full flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-border-dark shadow-sm overflow-hidden">
+<!-- Days Header -->
+<div class="grid grid-cols-7 border-b border-gray-200 dark:border-border-dark bg-gray-50 dark:bg-[#151d29]">
+<div class="py-3 text-center text-sm font-semibold text-slate-500 dark:text-text-secondary">周日</div>
+<div class="py-3 text-center text-sm font-semibold text-slate-500 dark:text-text-secondary">周一</div>
+<div class="py-3 text-center text-sm font-semibold text-slate-500 dark:text-text-secondary">周二</div>
+<div class="py-3 text-center text-sm font-semibold text-slate-500 dark:text-text-secondary">周三</div>
+<div class="py-3 text-center text-sm font-semibold text-slate-500 dark:text-text-secondary">周四</div>
+<div class="py-3 text-center text-sm font-semibold text-slate-500 dark:text-text-secondary">周五</div>
+<div class="py-3 text-center text-sm font-semibold text-slate-500 dark:text-text-secondary">周六</div>
+</div>
+<!-- Calendar Body -->
+<div class="flex-1 grid grid-cols-7 grid-rows-5">
+<!-- Previous Month Days -->
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] bg-gray-50/50 dark:bg-[#151d29]/30">
+<span class="text-slate-400 dark:text-text-secondary/50 text-sm font-medium block mb-1">26</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] bg-gray-50/50 dark:bg-[#151d29]/30">
+<span class="text-slate-400 dark:text-text-secondary/50 text-sm font-medium block mb-1">27</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] bg-gray-50/50 dark:bg-[#151d29]/30">
+<span class="text-slate-400 dark:text-text-secondary/50 text-sm font-medium block mb-1">28</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] bg-gray-50/50 dark:bg-[#151d29]/30">
+<span class="text-slate-400 dark:text-text-secondary/50 text-sm font-medium block mb-1">29</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] bg-gray-50/50 dark:bg-[#151d29]/30">
+<span class="text-slate-400 dark:text-text-secondary/50 text-sm font-medium block mb-1">30</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] bg-gray-50/50 dark:bg-[#151d29]/30">
+<span class="text-slate-400 dark:text-text-secondary/50 text-sm font-medium block mb-1">31</span>
+</div>
+<!-- Feb 1 -->
+<div class="border-b border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary transition-colors">1</span>
+</div>
+<!-- Row 2 -->
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">2</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">3</span>
+<!-- Event Capsule: Green -->
+<div class="w-full bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 rounded px-2 py-1 text-xs truncate mb-1 cursor-pointer hover:bg-green-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block mr-1"></span>
+                                Kaggle 组队完成
+                            </div>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">4</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">5</span>
+<!-- Event Capsule: Red -->
+<div class="w-full bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 rounded px-2 py-1 text-xs truncate mb-1 cursor-pointer hover:bg-red-500/20 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block mr-1"></span>
+                                ICPC 报名截止
+                            </div>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">6</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">7</span>
+</div>
+<div class="border-b border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">8</span>
+</div>
+<!-- Row 3 -->
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">9</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">10</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">11</span>
+</div>
+<!-- Selected Date: Feb 12 -->
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] bg-primary/5 dark:bg-primary/10 relative ring-2 ring-inset ring-primary z-10 group">
+<span class="text-primary dark:text-primary-light text-sm font-bold block mb-1">12</span>
+<div class="w-full bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 rounded px-2 py-1 text-xs truncate mb-1 cursor-pointer hover:bg-blue-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block mr-1"></span>
+                                导师会面
+                            </div>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">13</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">14</span>
+<div class="w-full bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 rounded px-2 py-1 text-xs truncate mb-1 cursor-pointer hover:bg-purple-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-purple-500 inline-block mr-1"></span>
+                                情人节黑客松
+                            </div>
+</div>
+<div class="border-b border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">15</span>
+</div>
+<!-- Row 4 -->
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">16</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">17</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">18</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">19</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">20</span>
+</div>
+<div class="border-b border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">21</span>
+</div>
+<div class="border-b border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">22</span>
+</div>
+<!-- Row 5 -->
+<div class="border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">23</span>
+</div>
+<div class="border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">24</span>
+<!-- Event Capsule: Green -->
+<div class="w-full bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 rounded px-2 py-1 text-xs truncate mb-1 cursor-pointer hover:bg-green-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block mr-1"></span>
+                                数模组队确认
+                            </div>
+</div>
+<div class="border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">25</span>
+</div>
+<div class="border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">26</span>
+</div>
+<div class="border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">27</span>
+</div>
+<div class="border-r border-gray-100 dark:border-border-dark/50 p-2 min-h-[100px] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+<span class="text-slate-700 dark:text-text-secondary text-sm font-medium block mb-1 group-hover:text-primary">28</span>
+</div>
+<!-- Empty slot for end of month -->
+<div class="p-2 min-h-[100px] bg-gray-50/50 dark:bg-[#151d29]/30">
+<span class="text-slate-400 dark:text-text-secondary/50 text-sm font-medium block mb-1">1</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- AI Assistant Sidebar (Right Panel) -->
+<aside class="w-[380px] bg-white dark:bg-[#151d29] border-l border-gray-200 dark:border-border-dark flex flex-col shrink-0 shadow-xl z-10 transition-all duration-300">
+<!-- Sidebar Header -->
+<div class="p-4 border-b border-gray-200 dark:border-border-dark flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-primary flex items-center justify-center shadow-lg shadow-indigo-500/30">
+<span class="material-symbols-outlined text-white text-[18px]">auto_awesome</span>
+</div>
+<div>
+<h3 class="text-base font-bold text-slate-900 dark:text-white">AI 助手建议</h3>
+<p class="text-xs text-slate-500 dark:text-text-secondary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> 在线
+                        </p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+<span class="material-symbols-outlined text-[20px]">close_fullscreen</span>
+</button>
+</div>
+<!-- Chat Area -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<!-- AI Message Bubble -->
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-primary flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-white text-[16px]">auto_awesome</span>
+</div>
+<div class="flex flex-col gap-2 max-w-[85%]">
+<div class="bg-gray-100 dark:bg-surface-dark p-3.5 rounded-2xl rounded-tl-none border border-gray-200 dark:border-border-dark shadow-sm">
+<p class="text-sm text-slate-700 dark:text-gray-200 leading-relaxed">
+                                你好！下周有 <span class="font-bold text-red-500">2项</span> 竞赛报名截止。建议优先补全 ‘ICPC’ 的导师确认。
+                            </p>
+</div>
+<div class="bg-gray-100 dark:bg-surface-dark p-3.5 rounded-2xl rounded-tl-none border border-gray-200 dark:border-border-dark shadow-sm">
+<p class="text-sm text-slate-700 dark:text-gray-200 leading-relaxed mb-3">
+                                点击下方卡片可快速标记为已报名。
+                            </p>
+<!-- Interactive mini-card inside chat -->
+<div class="bg-white dark:bg-[#111822] border border-gray-200 dark:border-border-dark rounded-lg p-3 hover:border-primary/50 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-bold text-slate-900 dark:text-white">ICPC 2026 区域赛</span>
+<span class="text-[10px] bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded">急</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-500 dark:text-text-secondary mt-2">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span class="group-hover:text-primary transition-colors">标记为已报名</span>
+</div>
+</div>
+</div>
+<span class="text-[10px] text-slate-400 pl-1">刚刚</span>
+</div>
+</div>
+</div>
+<!-- Suggestion Chips Grid -->
+<div class="p-4 bg-gray-50 dark:bg-[#151d29]/50 border-t border-gray-200 dark:border-border-dark">
+<div class="grid grid-cols-2 gap-2 mb-4">
+<button class="flex flex-col items-start gap-1 p-3 rounded-lg border border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark hover:border-primary/50 hover:bg-primary/5 transition-all text-left group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform">analytics</span>
+<span class="text-xs font-bold text-slate-700 dark:text-white">分析下周压力</span>
+</button>
+<button class="flex flex-col items-start gap-1 p-3 rounded-lg border border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark hover:border-primary/50 hover:bg-primary/5 transition-all text-left group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform">link</span>
+<span class="text-xs font-bold text-slate-700 dark:text-white">查找官网链接</span>
+</button>
+<button class="flex flex-col items-start gap-1 p-3 rounded-lg border border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark hover:border-primary/50 hover:bg-primary/5 transition-all text-left group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform">edit_note</span>
+<span class="text-xs font-bold text-slate-700 dark:text-white">更新状态文案</span>
+</button>
+<button class="flex flex-col items-start gap-1 p-3 rounded-lg border border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark hover:border-primary/50 hover:bg-primary/5 transition-all text-left group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform">fact_check</span>
+<span class="text-xs font-bold text-slate-700 dark:text-white">检查报名遗漏</span>
+</button>
+</div>
+<!-- Input Area -->
+<div class="relative">
+<input class="w-full bg-white dark:bg-[#111822] text-slate-900 dark:text-white border border-gray-200 dark:border-border-dark rounded-xl pl-4 pr-12 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary shadow-sm placeholder-slate-400 dark:placeholder-text-secondary" placeholder="询问 AI 助手..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+<span class="material-symbols-outlined text-[18px] block">send</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+</body></html>
