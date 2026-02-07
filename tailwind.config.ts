@@ -1,5 +1,9 @@
 import type { Config } from "tailwindcss";
 
+// Tailwind config is loaded by Node (tailwindcss/jiti) even though this is TS.
+// Avoid pulling in Node typings just for `require`.
+declare const require: any;
+
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   darkMode: "class",
@@ -19,8 +23,8 @@ export default {
         success: "#10b981",
       },
       fontFamily: {
-        display: ["Space Grotesk", "Noto Sans SC", "sans-serif"],
-        body: ["IBM Plex Sans", "Noto Sans SC", "sans-serif"],
+        display: ["Inter", "Noto Sans SC", "sans-serif"],
+        body: ["Inter", "Noto Sans SC", "sans-serif"],
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",

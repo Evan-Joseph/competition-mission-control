@@ -18,6 +18,11 @@ function normalizeYMD(v, { allowNull }) {
 
 function normalizeBool(v) {
   if (v === undefined) return undefined;
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return v !== 0;
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "true" || s === "1" || s === "yes" || s === "y") return true;
+  if (s === "false" || s === "0" || s === "no" || s === "n") return false;
   return Boolean(v);
 }
 
@@ -227,4 +232,3 @@ export async function onRequest(context) {
 
   return errorJson(405, "Method not allowed", { allow: ["GET", "PATCH"] });
 }
-

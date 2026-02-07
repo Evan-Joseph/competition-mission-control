@@ -73,6 +73,16 @@ function safeExtractJsonObject(text) {
 
 function normalizeActions(actions) {
   if (!Array.isArray(actions)) return [];
+  const allowedKeys = new Set([
+    "included_in_plan",
+    "registered",
+    "registration_deadline_at",
+    "submission_deadline_at",
+    "result_deadline_at",
+    "status_text",
+    "team_members",
+    "links",
+  ]);
   const out = [];
   for (const a of actions.slice(0, 20)) {
     if (!a || typeof a !== "object") continue;
@@ -81,12 +91,26 @@ function normalizeActions(actions) {
     if (!competition_id) continue;
     const patch = a.patch && typeof a.patch === "object" ? a.patch : null;
     if (!patch) continue;
+
+    // Keep only allowed keys to avoid surprising writes; backend will validate types.
+    const cleanedPatch = {};
+    for (const [k, v] of Object.entries(patch)) {
+      if (!allowedKeys.has(k)) continue;
+      // Accept ISO timestamps from model output; normalize to YYYY-MM-DD when obvious.
+      if ((k === "registration_deadline_at" || k === "submission_deadline_at" || k === "result_deadline_at") && typeof v === "string" && v.includes("T")) {
+        cleanedPatch[k] = v.slice(0, 10);
+        continue;
+      }
+      cleanedPatch[k] = v;
+    }
+    if (Object.keys(cleanedPatch).length === 0) continue;
+
     out.push({
       id: String(a.id || "") || "action_" + crypto.randomUUID().replaceAll("-", ""),
       type: "update_competition",
       title: String(a.title || "").trim() || "更新竞赛",
       competition_id,
-      patch,
+      patch: cleanedPatch,
       reason: a.reason ? String(a.reason) : undefined,
     });
   }
@@ -148,8 +172,11 @@ export async function onRequest(context) {
 
   const system = [
     "你是团队内部的『竞赛规划看板』AI 助手。",
+    "上下文默认仅包含『有效竞赛』（已错过报名的竞赛已排除）。",
     "你只能基于我提供的 JSON 数据回答；不确定就明确说不确定，并说明需要什么补充信息。",
     "你不会、也不能真实报名/提交/代办任何操作；你只能提出建议并生成『行动卡片』供用户确认后写入看板。",
+    "你可以做问候、每日建议、压力分析、规划建议；当且仅当用户确认后，行动卡片才会被写入。",
+    "如果启用联网搜索，请在 content 中给出关键结论的来源链接（原始 URL）。",
     "",
     "输出格式要求：你必须输出一个 JSON 对象（不要输出 Markdown 代码块）。",
     "JSON 结构：",
@@ -249,4 +276,3 @@ export async function onRequest(context) {
 
   return json({ ok: true, reply: { content, actions } });
 }
-

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-07T09:12:37.841669Z",
+  "generated_at": "2026-02-07T09:50:01.298277Z",
   "inputs": {
     "active_csv": "/Users/joseph/Desktop/【个人项目】竞赛矩阵企划/active_competitions_final.csv",
     "archive_csv": "/Users/joseph/Desktop/【个人项目】竞赛矩阵企划/archive_missed_competitions_final.csv",
@@ -10,25 +10,11 @@
   },
   "fixes": [
     {
-      "row_name": "全国高校商业精英挑战赛（品牌策划/会展/国贸/双创/会计与商业管理案例）（会计）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
       "row_name": "全国高校商业精英挑战赛（品牌策划/会展/国贸/双创/会计与商业管理案例）（双创）",
       "field": "registration_deadline_at",
       "before": "",
       "after": "2026-12-07",
       "note": "active: fallback to result_deadline_at"
-    },
-    {
-      "row_name": "全国高校商业精英挑战赛（品牌策划/会展/国贸/双创/会计与商业管理案例）（双创）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
     },
     {
       "row_name": "全国高校商业精英挑战赛（品牌策划/会展/国贸/双创/会计与商业管理案例）（双创/创业研究）",
@@ -38,109 +24,11 @@
       "note": "active: fallback to submission_deadline_at"
     },
     {
-      "row_name": "全国高校商业精英挑战赛（品牌策划/会展/国贸/双创/会计与商业管理案例）（双创/创业研究）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国高校商业精英挑战赛（品牌策划/会展/国贸/双创/会计与商业管理案例）（双创/创业计划）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国高校商业精英挑战赛（品牌策划/会展/国贸/双创/会计与商业管理案例）（品牌策划）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国企业竞争模拟大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生花园设计建造大赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生信息安全与对抗技术竞赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "米兰设计周—中国高校设计学科师生优秀作品展",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "第十七届蓝桥杯全国大学生软件和信息技术大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生机械创新设计大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "第十三届大学生新一代信息通信科技大赛（原“大唐杯”）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "中国大学生机械工程创新创意大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国三维数字化创新设计大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生测绘学科创新创业智能大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
       "row_name": "全国大学生电子商务“创新、创意及创业”挑战赛",
       "field": "registration_deadline_at",
       "before": "",
       "after": "2026-03-10",
       "note": "active: fallback to submission_deadline_at"
-    },
-    {
-      "row_name": "全国大学生电子商务“创新、创意及创业”挑战赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
     },
     {
       "row_name": "中国高校智能机器人创意大赛",
@@ -150,109 +38,11 @@
       "note": "active: fallback to submission_deadline_at"
     },
     {
-      "row_name": "中国高校智能机器人创意大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "中国高校计算机大赛（大数据挑战/天梯/移动应用/网络技术/AI创意/AIGC/智能交互/嵌入式）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生节能减排社会实践与科技竞赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生信息安全竞赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生基础医学创新研究暨实验设计论坛（全国大学生医学创新大赛）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "中国大学生服务外包创新创业大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "“西门子杯”中国智能制造挑战赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生化学实验创新设计大赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生化工设计竞赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "睿抗机器人开发者大赛（RAICOM）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "未来设计师·全国高校数字艺术设计大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生集成电路创新创业大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生光电设计竞赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
       "row_name": "全国大学生电子设计竞赛（专题赛段）",
       "field": "registration_deadline_at",
       "before": "",
       "after": "2026-07-31",
       "note": "active: fallback to submission_deadline_at"
-    },
-    {
-      "row_name": "全国大学生电子设计竞赛（专题赛段）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
     },
     {
       "row_name": "全国大学生电子设计竞赛（推测）",
@@ -262,242 +52,11 @@
       "note": "active: fallback to result_deadline_at"
     },
     {
-      "row_name": "全国大学生电子设计竞赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "“21世纪杯”全国英语演讲比赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "中华经典诵写讲大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生物联网设计竞赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "中国高校计算机大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生广告艺术大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "中国大学生计算机设计大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国高等院校数智化企业经营沙盘大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生统计建模大赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生数字媒体科技作品及创意竞赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "“挑战杯”中国大学生创业计划竞赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "挑战杯中国大学生创业计划竞赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生数学建模竞赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生工业设计大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生创新创业训练计划年会展示（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生物理实验竞赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国本科院校税收风险管控案例大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "iCAN大学生创新创业大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "“外教社杯”全国高校学生跨文化能力大赛（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生结构设计信息技术大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
       "row_name": "全国大学生嵌入式芯片与系统设计竞赛（应用赛道）",
       "field": "registration_deadline_at",
       "before": "",
       "after": "2026-10-20",
       "note": "active: fallback to submission_deadline_at"
-    },
-    {
-      "row_name": "全国大学生嵌入式芯片与系统设计竞赛（应用赛道）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生先进成图技术与产品信息建模创新大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "active: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "2025中国机器人大赛暨RoboCup机器人世界杯中国赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "第二十五届全国大学生机器人大赛 ROBOTAC（对抗赛推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "第二十五届全国大学生机器人大赛 ROBOTAC（设计赛推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "中美青年创客大赛 (2025 China-US Young Maker Competition)（推测）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生计算机系统能力大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "“中国软件杯”大学生软件设计大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生电子设计竞赛（专题赛报名截止）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "“中国软件杯”大学生软件设计大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "华为 ICT 大赛（2025年9月10日至11月30日已结束）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生市场调查与分析大赛（2025-09-27至2025-10-31）",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
-    },
-    {
-      "row_name": "全国大学生能源经济学术创意大赛",
-      "field": "status_text",
-      "before": "",
-      "after": "(from notes)",
-      "note": "archive: status_text empty, filled from notes"
     }
   ],
   "skips": [

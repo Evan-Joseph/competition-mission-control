@@ -208,10 +208,6 @@ def build_rows(repo: Path) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         registered = parse_bool(r.get("registered", "False"))
 
         status_text = str(r.get("status_text", "") or "").rstrip()
-        notes = str(r.get("notes", "") or "").rstrip()
-        if not status_text and notes:
-            fixes.append(Fix(row_name=name, field="status_text", before="", after="(from notes)", note=f"{src}: status_text empty, filled from notes"))
-            status_text = notes
 
         links = split_links(r.get("links", ""))
 
@@ -332,4 +328,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

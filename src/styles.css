@@ -26,9 +26,9 @@ body {
   height: 100dvh;
 }
 
-/* Global font choices from Stitch prototype */
+/* Global font choices (Inter + Noto Sans SC) */
 body {
-  font-family: "IBM Plex Sans", "Noto Sans SC", sans-serif;
+  font-family: "Inter", "Noto Sans SC", sans-serif;
 }
 
 h1,
@@ -38,7 +38,7 @@ h4,
 h5,
 h6,
 .font-display {
-  font-family: "Space Grotesk", "Noto Sans SC", sans-serif;
+  font-family: "Inter", "Noto Sans SC", sans-serif;
 }
 
 /* Scrollbars (close to prototype) */

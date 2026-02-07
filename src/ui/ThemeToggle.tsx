@@ -27,11 +27,9 @@ export default function ThemeToggle() {
     };
     onChange();
     if (typeof mql.addEventListener === "function") mql.addEventListener("change", onChange);
-    // @ts-expect-error - Safari < 14
     else if (typeof mql.addListener === "function") mql.addListener(onChange);
     return () => {
       if (typeof mql.removeEventListener === "function") mql.removeEventListener("change", onChange);
-      // @ts-expect-error - Safari < 14
       else if (typeof mql.removeListener === "function") mql.removeListener(onChange);
     };
   }, [pref]);
@@ -54,4 +52,3 @@ export default function ThemeToggle() {
     </button>
   );
 }
-

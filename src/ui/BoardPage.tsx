@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { aiAsk, listCompetitions, patchCompetition } from "../lib/api";
 import { applyOfflinePatches, upsertOfflinePatch } from "../lib/offline";
 import type { AIAction, AIReply, Competition, CompetitionEvent, CompetitionEventType, CompetitionPatch } from "../lib/types";
-import { endOfMonth, endOfWeek, formatCNDate, formatYMD, isYMD, parseYMD, startOfWeek, todayYMD, type YMD } from "../lib/date";
+import { addDays, endOfMonth, endOfWeek, formatCNDate, formatYMD, isYMD, parseYMD, startOfWeek, todayYMD, type YMD } from "../lib/date";
 import ThemeToggle from "./ThemeToggle";
 
 const VIEW_PARAM = "view";
@@ -47,7 +47,7 @@ function isMissedRegistration(c: Competition, todayISO: YMD): boolean {
 
 function eventTypeLabel(t: CompetitionEventType): string {
   if (t === "registration_deadline") return "报名截止";
-  if (t === "submission_deadline") return "作品提交";
+  if (t === "submission_deadline") return "提交截止";
   return "结果公布";
 }
 
@@ -165,7 +165,7 @@ function Header(props: {
         <div className="flex items-center gap-3 text-primary min-w-0">
           <span className="material-symbols-outlined text-3xl">dashboard</span>
           <div className="flex flex-col min-w-0">
-            <h1 className="text-xl font-bold tracking-tight leading-none text-slate-900 dark:text-white font-display truncate">竞赛看板</h1>
+            <h1 className="text-xl font-bold tracking-tight leading-none text-slate-900 dark:text-white font-display truncate">竞赛规划看板</h1>
             <span className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 font-mono tracking-widest mt-0.5 truncate">
               {dateLabel}
             </span>
@@ -275,82 +275,85 @@ function FiltersPanel(props: {
 }) {
   if (!props.open) return null;
   return (
-    <aside className="fixed inset-y-0 right-0 w-[min(90vw,22rem)] bg-white dark:bg-[#161f2c] border-l border-slate-200 dark:border-[#243347] flex flex-col shrink-0 z-30 shadow-xl">
-      <div className="p-5 border-b border-slate-200 dark:border-[#243347]">
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">筛选面板</h3>
-          <button className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors" type="button" onClick={props.onClose}>
-            <span className="material-symbols-outlined text-[20px]">close</span>
-          </button>
-        </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">管理显示的竞赛状态</p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-5 space-y-6">
-        <div className="space-y-4">
-          <label className="flex items-center justify-between cursor-pointer select-none">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">仅显示已规划</span>
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
-              checked={props.filters.onlyPlanned}
-              onChange={(e) => props.onChange({ onlyPlanned: e.target.checked })}
-            />
-          </label>
-          <label className="flex items-center justify-between cursor-pointer select-none">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">仅显示已报名</span>
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
-              checked={props.filters.onlyRegistered}
-              onChange={(e) => props.onChange({ onlyRegistered: e.target.checked })}
-            />
-          </label>
-          <label className="flex items-center justify-between cursor-pointer select-none">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">显示结果公布</span>
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
-              checked={props.filters.showResult}
-              onChange={(e) => props.onChange({ showResult: e.target.checked })}
-            />
-          </label>
-          <label className="flex items-center justify-between cursor-pointer select-none">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">显示已错过</span>
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
-              checked={props.filters.showMissed}
-              onChange={(e) => props.onChange({ showMissed: e.target.checked })}
-            />
-          </label>
+    <div className="fixed inset-0 z-30 md:static md:inset-auto md:z-auto md:w-72 md:shrink-0 md:h-full">
+      <button className="absolute inset-0 bg-black/30 md:hidden" type="button" aria-label="Close" onClick={props.onClose}></button>
+      <aside className="absolute right-0 inset-y-0 w-[min(90vw,22rem)] md:static md:inset-auto md:w-full md:h-full bg-white dark:bg-[#161f2c] border-l border-slate-200 dark:border-[#243347] flex flex-col shadow-xl">
+        <div className="p-5 border-b border-slate-200 dark:border-[#243347]">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">筛选面板</h3>
+            <button className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors" type="button" onClick={props.onClose}>
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">管理显示的竞赛状态</p>
         </div>
 
-        <div className="border-t border-slate-200 dark:border-[#243347] pt-4">
-          <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">即将到期</h4>
-          <div className="space-y-2">
-            {props.upcoming.length ? (
-              props.upcoming.map((u) => (
-                <button
-                  key={u.key}
-                  type="button"
-                  className="w-full text-left flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#243347] transition-colors"
-                  onClick={() => props.onJumpToDate(u.dateISO)}
-                >
-                  <div className="mt-1 size-2 rounded-full bg-primary"></div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{u.title}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{u.dateISO}</p>
-                  </div>
-                </button>
-              ))
-            ) : (
-              <p className="text-sm text-slate-500 dark:text-slate-400">暂无</p>
-            )}
+        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+          <div className="space-y-4">
+            <label className="flex items-center justify-between cursor-pointer select-none">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">仅显示已规划</span>
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
+                checked={props.filters.onlyPlanned}
+                onChange={(e) => props.onChange({ onlyPlanned: e.target.checked })}
+              />
+            </label>
+            <label className="flex items-center justify-between cursor-pointer select-none">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">仅显示已报名</span>
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
+                checked={props.filters.onlyRegistered}
+                onChange={(e) => props.onChange({ onlyRegistered: e.target.checked })}
+              />
+            </label>
+            <label className="flex items-center justify-between cursor-pointer select-none">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">显示结果公布</span>
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
+                checked={props.filters.showResult}
+                onChange={(e) => props.onChange({ showResult: e.target.checked })}
+              />
+            </label>
+            <label className="flex items-center justify-between cursor-pointer select-none">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">显示已错过</span>
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
+                checked={props.filters.showMissed}
+                onChange={(e) => props.onChange({ showMissed: e.target.checked })}
+              />
+            </label>
+          </div>
+
+          <div className="border-t border-slate-200 dark:border-[#243347] pt-4">
+            <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">即将到期</h4>
+            <div className="space-y-2">
+              {props.upcoming.length ? (
+                props.upcoming.map((u) => (
+                  <button
+                    key={u.key}
+                    type="button"
+                    className="w-full text-left flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#243347] transition-colors"
+                    onClick={() => props.onJumpToDate(u.dateISO)}
+                  >
+                    <div className="mt-1 size-2 rounded-full bg-primary"></div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{u.title}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{u.dateISO}</p>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500 dark:text-slate-400">暂无</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </div>
   );
 }
 
@@ -403,9 +406,9 @@ function Drawer(props: {
   };
 
   return (
-    <div className="fixed inset-0 z-40">
-      <button className="absolute inset-0 bg-black/30" type="button" aria-label="Close" onClick={props.onClose}></button>
-      <aside className="absolute right-0 inset-y-0 w-[min(96vw,30rem)] bg-white dark:bg-[#111822] border-l border-slate-200 dark:border-[#243347] flex flex-col shadow-xl">
+    <div className="fixed inset-0 z-40 md:static md:inset-auto md:z-auto md:w-[30rem] md:shrink-0 md:h-full">
+      <button className="absolute inset-0 bg-black/30 md:hidden" type="button" aria-label="Close" onClick={props.onClose}></button>
+      <aside className="absolute right-0 inset-y-0 w-[min(96vw,30rem)] md:static md:inset-auto md:w-full md:h-full bg-white dark:bg-[#111822] border-l border-slate-200 dark:border-[#243347] flex flex-col shadow-xl">
         <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-border-dark">
           <div className="flex-1 pr-4 min-w-0">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-tight truncate">{draft.name}</h2>
@@ -473,7 +476,7 @@ function Drawer(props: {
               <div className="flex items-center gap-3">
                 <div className="w-1 h-10 rounded-full bg-blue-400"></div>
                 <div className="flex-1">
-                  <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">作品提交</label>
+                  <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">提交截止</label>
                   <input
                     className="w-full bg-slate-50 dark:bg-[#151e2a] border border-slate-200 dark:border-border-dark rounded-lg text-sm text-slate-900 dark:text-white px-3 py-2 focus:ring-1 focus:ring-primary focus:border-primary"
                     type="date"
@@ -670,11 +673,26 @@ function ListView(props: {
                 {g.items.map((ev) => {
                   const comp = props.competitionsById.get(ev.competition_id);
                   if (!comp) return null;
+                  const missed = isMissedRegistration(comp, props.todayISO);
                   const d = parseYMD(ev.date);
                   const month = d ? `${d.getMonth() + 1}月` : ev.date.slice(5, 7) + "月";
                   const day = d ? String(d.getDate()).padStart(2, "0") : ev.date.slice(8, 10);
+                  const typeBadge =
+                    missed
+                      ? "bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                      : ev.type === "registration_deadline"
+                        ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800"
+                        : ev.type === "submission_deadline"
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800"
+                          : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800";
                   const tone =
-                    ev.type === "registration_deadline" ? "border-orange-500/40 bg-orange-500/5 dark:bg-orange-500/10" : ev.type === "submission_deadline" ? "border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10" : "border-purple-500/30 bg-purple-500/5 dark:bg-purple-500/10";
+                    missed
+                      ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20"
+                      : ev.type === "registration_deadline"
+                        ? "border-orange-500/40 bg-orange-500/5 dark:bg-orange-500/10"
+                        : ev.type === "submission_deadline"
+                          ? "border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10"
+                          : "border-purple-500/30 bg-purple-500/5 dark:bg-purple-500/10";
                   return (
                     <button
                       key={ev.event_id}
@@ -688,9 +706,22 @@ function ListView(props: {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 min-w-0">
-                          <h4 className="text-base font-semibold text-slate-900 dark:text-white truncate">
-                            {comp.name} - {eventTypeLabel(ev.type)}
+                          <h4
+                            className={[
+                              "text-base font-semibold truncate",
+                              missed ? "text-slate-500 dark:text-slate-300 line-through" : "text-slate-900 dark:text-white",
+                            ].join(" ")}
+                          >
+                            {comp.name}
                           </h4>
+                          <span className={["px-2 py-0.5 rounded text-[10px] font-medium border shrink-0", typeBadge].join(" ")}>
+                            {eventTypeLabel(ev.type)}
+                          </span>
+                          {missed ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-200/60 dark:bg-slate-700/50 text-slate-600 dark:text-slate-200 border border-slate-300/50 dark:border-slate-600/40 shrink-0">
+                              已错过报名
+                            </span>
+                          ) : null}
                           {comp.included_in_plan ? (
                             <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 shrink-0">规划中</span>
                           ) : null}
@@ -727,6 +758,7 @@ function ListView(props: {
 function CalendarView(props: {
   mode: CalendarMode;
   anchorDate: YMD;
+  todayISO: YMD;
   onAnchorDateChange: (d: YMD) => void;
   onModeChange: (m: CalendarMode) => void;
   events: CompetitionEvent[];
@@ -820,12 +852,15 @@ function CalendarView(props: {
                       items.map((ev) => {
                         const comp = props.competitionsById.get(ev.competition_id);
                         if (!comp) return null;
+                        const missed = isMissedRegistration(comp, props.todayISO);
                         const color =
-                          ev.type === "registration_deadline"
-                            ? "bg-orange-50 dark:bg-orange-900/20 border-orange-500 text-orange-600 dark:text-orange-400"
-                            : ev.type === "submission_deadline"
-                              ? "bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400"
-                              : "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 text-indigo-600 dark:text-indigo-400";
+                          missed
+                            ? "bg-slate-100 dark:bg-slate-800/40 border-slate-400/40 text-slate-600 dark:text-slate-300"
+                            : ev.type === "registration_deadline"
+                              ? "bg-orange-50 dark:bg-orange-900/20 border-orange-500 text-orange-600 dark:text-orange-400"
+                              : ev.type === "submission_deadline"
+                                ? "bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400"
+                                : "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 text-indigo-600 dark:text-indigo-400";
                         return (
                           <button
                             key={ev.event_id}
@@ -836,7 +871,14 @@ function CalendarView(props: {
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-[10px] font-bold uppercase tracking-wider">{eventTypeLabel(ev.type)}</span>
                             </div>
-                            <h3 className="text-sm font-semibold text-slate-800 dark:text-white leading-tight mb-1 truncate">{comp.name}</h3>
+                            <h3
+                              className={[
+                                "text-sm font-semibold leading-tight mb-1 truncate",
+                                missed ? "text-slate-500 dark:text-slate-300 line-through" : "text-slate-800 dark:text-white",
+                              ].join(" ")}
+                            >
+                              {comp.name}
+                            </h3>
                             {comp.included_in_plan ? <span className="text-[10px] text-primary">规划中</span> : null}
                           </button>
                         );
@@ -940,14 +982,21 @@ function CalendarView(props: {
               const inMonth = d.getMonth() === anchor.getMonth();
               const items = eventsByDate.get(dateISO) || [];
               return (
-                <button
+                <div
                   key={dateISO}
-                  type="button"
                   className={[
                     "border-b border-r border-gray-100 dark:border-border-dark/50 p-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group overflow-hidden",
                     !inMonth ? "bg-gray-50/50 dark:bg-[#151d29]/30" : "",
                   ].join(" ")}
                   onClick={() => {
+                    if (!items.length) return;
+                    props.onAnchorDateChange(dateISO);
+                    props.onModeChange("week");
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" && e.key !== " ") return;
                     if (!items.length) return;
                     props.onAnchorDateChange(dateISO);
                     props.onModeChange("week");
@@ -960,22 +1009,35 @@ function CalendarView(props: {
                     {items.slice(0, 3).map((ev) => {
                       const comp = props.competitionsById.get(ev.competition_id);
                       if (!comp) return null;
+                      const missed = isMissedRegistration(comp, props.todayISO);
                       const color =
-                        ev.type === "registration_deadline"
-                          ? "bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400"
-                          : ev.type === "submission_deadline"
-                            ? "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400"
-                            : "bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-400";
+                        missed
+                          ? "bg-slate-200/40 dark:bg-slate-800/40 border-slate-400/30 text-slate-600 dark:text-slate-300"
+                          : ev.type === "registration_deadline"
+                            ? "bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400"
+                            : ev.type === "submission_deadline"
+                              ? "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400"
+                              : "bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-400";
                       return (
-                        <div key={ev.event_id} className={["w-full border rounded px-2 py-1 text-xs truncate", color].join(" ")}>
+                        <button
+                          key={ev.event_id}
+                          type="button"
+                          className={["w-full border rounded px-2 py-1 text-xs truncate hover:shadow-sm transition-shadow", color].join(" ")}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            props.onOpenCompetition(ev.competition_id);
+                          }}
+                        >
                           <span className="w-1.5 h-1.5 rounded-full bg-current inline-block mr-1"></span>
-                          {comp.name} {eventTypeLabel(ev.type)}
-                        </div>
+                          <span className={missed ? "line-through" : ""}>
+                            {comp.name} {eventTypeLabel(ev.type)}
+                          </span>
+                        </button>
                       );
                     })}
                     {items.length > 3 ? <div className="text-[10px] text-slate-400">+{items.length - 3}</div> : null}
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -988,9 +1050,8 @@ function CalendarView(props: {
 function AIPanel(props: {
   open: boolean;
   onClose: () => void;
+  apiAvailable: boolean;
   todayISO: YMD;
-  includeMissed: boolean;
-  onIncludeMissedChange: (v: boolean) => void;
   useWebSearch: boolean;
   onUseWebSearchChange: (v: boolean) => void;
   onApplyAction: (a: AIAction) => Promise<void>;
@@ -1005,11 +1066,16 @@ function AIPanel(props: {
   const ask = async (q: string) => {
     const msg = q.trim();
     if (!msg) return;
+    if (!props.apiAvailable) {
+      setErr("AI 需要启用 Cloudflare Pages Functions（本地用 wrangler pages dev 运行）。");
+      return;
+    }
     setErr(null);
     setBusy(true);
     setMessages((m) => [...m, { role: "user", content: msg }]);
     try {
-      const reply: AIReply = await aiAsk(msg, { useWebSearch: props.useWebSearch, includeMissed: props.includeMissed, todayISO: props.todayISO });
+      // AI 默认上下文仅包含有效竞赛（排除已错过报名）。
+      const reply: AIReply = await aiAsk(msg, { useWebSearch: props.useWebSearch, includeMissed: false, todayISO: props.todayISO });
       setMessages((m) => [...m, { role: "ai", content: reply.content, actions: reply.actions || [] }]);
     } catch (e) {
       setErr(String(e && typeof e === "object" && "message" in e ? (e as any).message : e));
@@ -1019,116 +1085,121 @@ function AIPanel(props: {
   };
 
   return (
-    <aside className="fixed inset-y-0 right-0 w-[min(96vw,26rem)] bg-white dark:bg-[#151d29] border-l border-gray-200 dark:border-border-dark flex flex-col shrink-0 shadow-xl z-30">
-      <div className="p-4 border-b border-gray-200 dark:border-border-dark flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-primary flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <span className="material-symbols-outlined text-white text-[18px]">auto_awesome</span>
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">AI 助手</h3>
-            <p className="text-xs text-slate-500 dark:text-text-secondary">行动卡片需要你确认后才会写入</p>
-          </div>
-        </div>
-        <button className="text-slate-400 hover:text-slate-600 dark:hover:text-white" type="button" onClick={props.onClose}>
-          <span className="material-symbols-outlined text-[20px]">close</span>
-        </button>
-      </div>
-
-      <div className="p-4 border-b border-gray-200 dark:border-border-dark bg-gray-50 dark:bg-[#151d29]/50 space-y-3">
-        <label className="flex items-center justify-between text-sm">
-          <span className="text-slate-700 dark:text-slate-200">包含已错过</span>
-          <input type="checkbox" checked={props.includeMissed} onChange={(e) => props.onIncludeMissedChange(e.target.checked)} />
-        </label>
-        <label className="flex items-center justify-between text-sm">
-          <span className="text-slate-700 dark:text-slate-200">联网搜索</span>
-          <input type="checkbox" checked={props.useWebSearch} onChange={(e) => props.onUseWebSearchChange(e.target.checked)} />
-        </label>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length ? (
-          messages.map((m, idx) => (
-            <div key={idx} className={["flex gap-3", m.role === "user" ? "justify-end" : ""].join(" ")}>
-              {m.role === "ai" ? (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-primary flex items-center justify-center shrink-0 mt-1">
-                  <span className="material-symbols-outlined text-white text-[16px]">auto_awesome</span>
-                </div>
-              ) : null}
-              <div className={["flex flex-col gap-2 max-w-[90%]", m.role === "user" ? "items-end" : ""].join(" ")}>
-                <div
-                  className={[
-                    "p-3.5 rounded-2xl border shadow-sm whitespace-pre-wrap text-sm leading-relaxed",
-                    m.role === "user"
-                      ? "bg-primary text-white border-primary/30 rounded-tr-none"
-                      : "bg-gray-100 dark:bg-surface-dark text-slate-700 dark:text-gray-200 border-gray-200 dark:border-border-dark rounded-tl-none",
-                  ].join(" ")}
-                >
-                  {m.content}
-                </div>
-                {m.role === "ai" && m.actions && m.actions.length ? (
-                  <div className="space-y-2 w-full">
-                    {m.actions.map((a) => (
-                      <div key={a.id} className="bg-white dark:bg-[#111822] border border-gray-200 dark:border-border-dark rounded-lg p-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{a.title}</p>
-                            {a.reason ? <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.reason}</p> : null}
-                            <pre className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 overflow-x-auto">{JSON.stringify(a.patch, null, 2)}</pre>
-                          </div>
-                          <button
-                            type="button"
-                            className="shrink-0 px-2 py-1 text-xs font-semibold rounded bg-primary text-white hover:bg-primary-dark"
-                            onClick={async () => {
-                              if (!confirm(`确认执行动作：${a.title}？`)) return;
-                              await props.onApplyAction(a);
-                            }}
-                          >
-                            应用
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+    <div className="fixed inset-0 z-30 md:static md:inset-auto md:z-auto md:w-[380px] md:shrink-0 md:h-full">
+      <button className="absolute inset-0 bg-black/30 md:hidden" type="button" aria-label="Close" onClick={props.onClose}></button>
+      <aside className="absolute right-0 inset-y-0 w-[min(96vw,26rem)] md:static md:inset-auto md:w-full md:h-full bg-white dark:bg-[#151d29] border-l border-gray-200 dark:border-border-dark flex flex-col shrink-0 shadow-xl">
+        <div className="p-4 border-b border-gray-200 dark:border-border-dark flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-primary flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <span className="material-symbols-outlined text-white text-[18px]">auto_awesome</span>
             </div>
-          ))
-        ) : (
-          <div className="text-sm text-slate-500 dark:text-slate-400">输入问题，例如：下周有哪些报名截止？帮我标记某个竞赛为已报名。</div>
-        )}
-        {err ? <div className="text-xs text-danger whitespace-pre-wrap">{err}</div> : null}
-      </div>
-
-      <div className="p-4 bg-gray-50 dark:bg-[#151d29]/50 border-t border-gray-200 dark:border-border-dark">
-        <div className="relative">
-          <input
-            className="w-full bg-white dark:bg-[#111822] text-slate-900 dark:text-white border border-gray-200 dark:border-border-dark rounded-xl pl-4 pr-12 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary shadow-sm placeholder-slate-400 dark:placeholder-text-secondary"
-            placeholder="询问 AI 助手..."
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key !== "Enter") return;
-              ask(input);
-              setInput("");
-            }}
-            disabled={busy}
-          />
-          <button
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60"
-            type="button"
-            disabled={busy}
-            onClick={() => {
-              ask(input);
-              setInput("");
-            }}
-          >
-            <span className="material-symbols-outlined text-[18px] block">send</span>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">AI 助手</h3>
+              <p className="text-xs text-slate-500 dark:text-text-secondary">行动卡片需要你确认后才会写入</p>
+            </div>
+          </div>
+          <button className="text-slate-400 hover:text-slate-600 dark:hover:text-white" type="button" onClick={props.onClose}>
+            <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
-      </div>
-    </aside>
+
+        <div className="p-4 border-b border-gray-200 dark:border-border-dark bg-gray-50 dark:bg-[#151d29]/50 space-y-3">
+          <p className="text-xs text-slate-500 dark:text-text-secondary">上下文：默认仅有效竞赛（排除已错过报名），可选联网搜索。</p>
+          <label className="flex items-center justify-between text-sm">
+            <span className="text-slate-700 dark:text-slate-200">联网搜索</span>
+            <input
+              type="checkbox"
+              checked={props.useWebSearch}
+              disabled={!props.apiAvailable}
+              onChange={(e) => props.onUseWebSearchChange(e.target.checked)}
+            />
+          </label>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.length ? (
+            messages.map((m, idx) => (
+              <div key={idx} className={["flex gap-3", m.role === "user" ? "justify-end" : ""].join(" ")}>
+                {m.role === "ai" ? (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-primary flex items-center justify-center shrink-0 mt-1">
+                    <span className="material-symbols-outlined text-white text-[16px]">auto_awesome</span>
+                  </div>
+                ) : null}
+                <div className={["flex flex-col gap-2 max-w-[90%]", m.role === "user" ? "items-end" : ""].join(" ")}>
+                  <div
+                    className={[
+                      "p-3.5 rounded-2xl border shadow-sm whitespace-pre-wrap text-sm leading-relaxed",
+                      m.role === "user"
+                        ? "bg-primary text-white border-primary/30 rounded-tr-none"
+                        : "bg-gray-100 dark:bg-surface-dark text-slate-700 dark:text-gray-200 border-gray-200 dark:border-border-dark rounded-tl-none",
+                    ].join(" ")}
+                  >
+                    {m.content}
+                  </div>
+                  {m.role === "ai" && m.actions && m.actions.length ? (
+                    <div className="space-y-2 w-full">
+                      {m.actions.map((a) => (
+                        <div key={a.id} className="bg-white dark:bg-[#111822] border border-gray-200 dark:border-border-dark rounded-lg p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{a.title}</p>
+                              {a.reason ? <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.reason}</p> : null}
+                              <pre className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 overflow-x-auto">{JSON.stringify(a.patch, null, 2)}</pre>
+                            </div>
+                            <button
+                              type="button"
+                              className="shrink-0 px-2 py-1 text-xs font-semibold rounded bg-primary text-white hover:bg-primary-dark"
+                              onClick={async () => {
+                                if (!confirm(`确认执行动作：${a.title}？`)) return;
+                                await props.onApplyAction(a);
+                              }}
+                            >
+                              应用
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-sm text-slate-500 dark:text-slate-400">输入问题，例如：下周有哪些报名截止？帮我标记某个竞赛为已报名。</div>
+          )}
+          {err ? <div className="text-xs text-danger whitespace-pre-wrap">{err}</div> : null}
+        </div>
+
+        <div className="p-4 bg-gray-50 dark:bg-[#151d29]/50 border-t border-gray-200 dark:border-border-dark">
+          <div className="relative">
+            <input
+              className="w-full bg-white dark:bg-[#111822] text-slate-900 dark:text-white border border-gray-200 dark:border-border-dark rounded-xl pl-4 pr-12 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary shadow-sm placeholder-slate-400 dark:placeholder-text-secondary"
+              placeholder="询问 AI 助手..."
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                ask(input);
+                setInput("");
+              }}
+              disabled={busy || !props.apiAvailable}
+            />
+            <button
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60"
+              type="button"
+              disabled={busy || !props.apiAvailable}
+              onClick={() => {
+                ask(input);
+                setInput("");
+              }}
+            >
+              <span className="material-symbols-outlined text-[18px] block">send</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
   );
 }
 
@@ -1151,8 +1222,7 @@ export default function BoardPage() {
   const [onlyRegistered, setOnlyRegistered] = useState(false);
   const [showResult, setShowResult] = useState(true);
   const [showMissed, setShowMissed] = useState(false);
-  const [aiIncludeMissed, setAiIncludeMissed] = useState(false);
-  const [aiUseWebSearch, setAiUseWebSearch] = useState(false);
+  const [aiUseWebSearch, setAiUseWebSearch] = useState(true);
 
   const now = useStableNowTick(60_000);
   const todayISO: YMD = todayYMD(now);
@@ -1203,7 +1273,11 @@ export default function BoardPage() {
     });
   };
 
-  const openCompetition = (id: string) => setParam(OPEN_PARAM, id);
+  const openCompetition = (id: string) => {
+    setFiltersOpen(false);
+    setAiOpen(false);
+    setParam(OPEN_PARAM, id);
+  };
   const closeDrawer = () => setParam(OPEN_PARAM, null);
 
   const saveCompetition = async (id: string, patch: CompetitionPatch) => {
@@ -1240,10 +1314,12 @@ export default function BoardPage() {
         query={query}
         onQueryChange={setQuery}
         onToggleFilters={() => {
+          closeDrawer();
           setFiltersOpen((x) => !x);
           setAiOpen(false);
         }}
         onToggleAI={() => {
+          closeDrawer();
           setAiOpen((x) => !x);
           setFiltersOpen(false);
         }}
@@ -1256,6 +1332,7 @@ export default function BoardPage() {
           <CalendarView
             mode={calendarMode}
             anchorDate={anchorDate}
+            todayISO={todayISO}
             onAnchorDateChange={(d) => setParam(CAL_DATE_PARAM, d)}
             onModeChange={(m) => setParam(CAL_PARAM, m === "week" ? "week" : null)}
             events={events}
@@ -1285,9 +1362,8 @@ export default function BoardPage() {
         <AIPanel
           open={aiOpen}
           onClose={() => setAiOpen(false)}
+          apiAvailable={competitionsSource === "api"}
           todayISO={todayISO}
-          includeMissed={aiIncludeMissed}
-          onIncludeMissedChange={setAiIncludeMissed}
           useWebSearch={aiUseWebSearch}
           onUseWebSearchChange={setAiUseWebSearch}
           onApplyAction={applyAiAction}
