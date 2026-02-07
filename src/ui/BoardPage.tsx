@@ -1157,18 +1157,24 @@ function AIPanel(props: {
           </button>
         </div>
 
-        <div className="p-4 border-b border-gray-200 dark:border-border-dark bg-gray-50 dark:bg-[#151d29]/50 space-y-3">
-          <p className="text-xs text-slate-500 dark:text-text-secondary">上下文：默认仅有效竞赛（排除已错过报名），可选联网搜索。</p>
-          <label className="flex items-center justify-between text-sm">
-            <span className="text-slate-700 dark:text-slate-200">联网搜索</span>
-            <input
-              type="checkbox"
-              checked={props.useWebSearch}
-              disabled={!props.apiAvailable}
-              onChange={(e) => props.onUseWebSearchChange(e.target.checked)}
-            />
-          </label>
-        </div>
+	        <div className="p-4 border-b border-gray-200 dark:border-border-dark bg-gray-50 dark:bg-[#151d29]/50 space-y-3">
+	          <p className="text-xs text-slate-500 dark:text-text-secondary">上下文：默认仅有效竞赛（排除已错过报名），可选联网搜索。</p>
+	          <p className="text-xs text-slate-500 dark:text-text-secondary">限制：AI 不会、也不能真实报名/提交；只会给建议并生成行动卡片。</p>
+	          <label className="flex items-center justify-between text-sm cursor-pointer select-none gap-3">
+	            <span className="text-slate-700 dark:text-slate-200">联网搜索</span>
+	            <span className="relative inline-flex items-center shrink-0">
+	              <input
+	                type="checkbox"
+	                className="sr-only peer"
+	                checked={props.useWebSearch}
+	                disabled={!props.apiAvailable}
+	                onChange={(e) => props.onUseWebSearchChange(e.target.checked)}
+	              />
+	              <span className="w-10 h-6 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-primary transition-colors ring-1 ring-slate-300 dark:ring-slate-600 peer-focus:ring-2 peer-focus:ring-primary/40 peer-disabled:opacity-60"></span>
+	              <span className="absolute left-1 top-1 size-4 rounded-full bg-white dark:bg-slate-200 transition-transform peer-checked:translate-x-4 shadow peer-disabled:opacity-60"></span>
+	            </span>
+	          </label>
+	        </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length ? (
