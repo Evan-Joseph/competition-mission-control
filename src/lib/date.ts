@@ -68,5 +68,9 @@ export function endOfMonth(d: Date): Date {
 }
 
 export function formatCNDate(d: Date): string {
-  return `${d.getMonth() + 1}月${String(d.getDate()).padStart(2, "0")}`;
+  const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+  const m = d.getMonth() + 1;
+  const day = String(d.getDate()).padStart(2, "0");
+  const wd = weekdays[d.getDay()] || "";
+  return `${m}月 ${day}日, ${wd}`;
 }

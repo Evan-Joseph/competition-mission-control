@@ -235,12 +235,17 @@ function Header(props: {
         <div className="hidden lg:flex w-64 items-center gap-2 rounded-lg bg-slate-100 dark:bg-surface-dark px-3 py-1.5 border border-transparent focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 transition-all">
           <span className="material-symbols-outlined text-slate-400 text-[20px]">search</span>
           <input
-            className="w-full bg-transparent border-none p-0 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-0"
+            id="board-search"
+            className="flex-1 min-w-0 bg-transparent border-none p-0 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-0"
             placeholder="搜索竞赛、事件..."
             type="text"
             value={props.query}
             onChange={(e) => props.onQueryChange(e.target.value)}
           />
+          <div className="flex items-center gap-0.5 text-[10px] text-slate-400 border border-slate-300 dark:border-slate-600 rounded px-1 shrink-0">
+            <span>⌘</span>
+            <span>K</span>
+          </div>
         </div>
 
         <button
@@ -274,6 +279,20 @@ function FiltersPanel(props: {
   onJumpToDate: (dateISO: YMD) => void;
 }) {
   if (!props.open) return null;
+
+  function ToggleRow(p: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+    return (
+      <label className="flex items-center justify-between cursor-pointer select-none gap-3">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{p.label}</span>
+        <span className="relative inline-flex items-center shrink-0">
+          <input type="checkbox" className="sr-only peer" checked={p.checked} onChange={(e) => p.onChange(e.target.checked)} />
+          <span className="w-10 h-6 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-primary transition-colors ring-1 ring-slate-300 dark:ring-slate-600 peer-focus:ring-2 peer-focus:ring-primary/40"></span>
+          <span className="absolute left-1 top-1 size-4 rounded-full bg-white dark:bg-slate-200 transition-transform peer-checked:translate-x-4 shadow"></span>
+        </span>
+      </label>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-30 md:static md:inset-auto md:z-auto md:w-72 md:shrink-0 md:h-full">
       <button className="absolute inset-0 bg-black/30 md:hidden" type="button" aria-label="Close" onClick={props.onClose}></button>
@@ -290,42 +309,10 @@ function FiltersPanel(props: {
 
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           <div className="space-y-4">
-            <label className="flex items-center justify-between cursor-pointer select-none">
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">仅显示已规划</span>
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
-                checked={props.filters.onlyPlanned}
-                onChange={(e) => props.onChange({ onlyPlanned: e.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between cursor-pointer select-none">
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">仅显示已报名</span>
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
-                checked={props.filters.onlyRegistered}
-                onChange={(e) => props.onChange({ onlyRegistered: e.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between cursor-pointer select-none">
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">显示结果公布</span>
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
-                checked={props.filters.showResult}
-                onChange={(e) => props.onChange({ showResult: e.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between cursor-pointer select-none">
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">显示已错过</span>
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600"
-                checked={props.filters.showMissed}
-                onChange={(e) => props.onChange({ showMissed: e.target.checked })}
-              />
-            </label>
+            <ToggleRow label="仅显示已规划" checked={props.filters.onlyPlanned} onChange={(v) => props.onChange({ onlyPlanned: v })} />
+            <ToggleRow label="仅显示已报名" checked={props.filters.onlyRegistered} onChange={(v) => props.onChange({ onlyRegistered: v })} />
+            <ToggleRow label="显示结果公布" checked={props.filters.showResult} onChange={(v) => props.onChange({ showResult: v })} />
+            <ToggleRow label="显示已错过" checked={props.filters.showMissed} onChange={(v) => props.onChange({ showMissed: v })} />
           </div>
 
           <div className="border-t border-slate-200 dark:border-[#243347] pt-4">
@@ -661,40 +648,46 @@ function ListView(props: {
       .filter((g) => g.items.length > 0);
   }, [props.events, props.todayISO]);
 
-  const renderEvent = (ev: CompetitionEvent) => {
-    const comp = props.competitionsById.get(ev.competition_id);
-    if (!comp) return null;
-    const missed = isMissedRegistration(comp, props.todayISO);
-    const d = parseYMD(ev.date);
-    const month = d ? `${d.getMonth() + 1}月` : ev.date.slice(5, 7) + "月";
-    const day = d ? String(d.getDate()).padStart(2, "0") : ev.date.slice(8, 10);
-    const typeBadge =
-      missed
+	  const renderEvent = (ev: CompetitionEvent) => {
+	    const comp = props.competitionsById.get(ev.competition_id);
+	    if (!comp) return null;
+	    const missed = isMissedRegistration(comp, props.todayISO);
+	    const planned = comp.included_in_plan && !missed;
+	    const d = parseYMD(ev.date);
+	    const month = d ? `${d.getMonth() + 1}月` : ev.date.slice(5, 7) + "月";
+	    const day = d ? String(d.getDate()).padStart(2, "0") : ev.date.slice(8, 10);
+	    const typeBadge =
+	      missed
         ? "bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
         : ev.type === "registration_deadline"
           ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800"
           : ev.type === "submission_deadline"
             ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800"
             : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800";
-    const tone =
-      missed
-        ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20"
-        : ev.type === "registration_deadline"
-          ? "border-orange-500/40 bg-orange-500/5 dark:bg-orange-500/10"
-          : ev.type === "submission_deadline"
-            ? "border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10"
-            : "border-purple-500/30 bg-purple-500/5 dark:bg-purple-500/10";
-    return (
-      <button
-        key={ev.event_id}
-        type="button"
-        className={["w-full text-left group relative flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md", tone].join(" ")}
-        onClick={() => props.onOpenCompetition(comp.id)}
-      >
-        <div className="flex flex-col items-center justify-center min-w-[3rem] text-center">
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">{month}</span>
-          <span className="text-xl font-bold text-slate-900 dark:text-white">{day}</span>
-        </div>
+	    const tone =
+	      missed
+	        ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20"
+	        : planned
+	          ? "border-primary/40 bg-primary/5 dark:bg-primary/10 shadow-sm"
+	          : ev.type === "registration_deadline"
+	            ? "border-orange-500/40 bg-orange-500/5 dark:bg-orange-500/10"
+	            : ev.type === "submission_deadline"
+	              ? "border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10"
+	              : "border-purple-500/30 bg-purple-500/5 dark:bg-purple-500/10";
+	    return (
+	      <button
+	        key={ev.event_id}
+	        type="button"
+	        className={["w-full text-left group relative flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md", tone].join(" ")}
+	        onClick={() => props.onOpenCompetition(comp.id)}
+	      >
+	        {planned ? <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-xl"></div> : null}
+	        <div className={["flex flex-col items-center justify-center min-w-[3rem] text-center", planned ? "" : "opacity-70"].join(" ")}>
+	          <span className={["text-xs font-medium uppercase", planned ? "text-primary" : "text-slate-500 dark:text-slate-400"].join(" ")}>
+	            {month}
+	          </span>
+	          <span className="text-xl font-bold text-slate-900 dark:text-white">{day}</span>
+	        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 min-w-0">
             <h4
@@ -1287,6 +1280,20 @@ export default function BoardPage() {
 
   const now = useStableNowTick(60_000);
   const todayISO: YMD = todayYMD(now);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (String(e.key || "").toLowerCase() !== "k") return;
+      e.preventDefault();
+      const el = document.getElementById("board-search") as HTMLInputElement | null;
+      if (!el) return;
+      el.focus();
+      el.select();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const competitionsQ = useQuery({ queryKey: ["competitions"], queryFn: loadCompetitionsWithFallback, refetchInterval: 60_000 });
 
