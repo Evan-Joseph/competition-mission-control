@@ -1,0 +1,18 @@
+name = "competition-mission-control"
+compatibility_date = "2026-02-07"
+
+# Local development notes:
+# - You can run `wrangler pages dev site ... --d1 DB=competition-mission-control`
+# - For local D1 seeding, use `wrangler d1 execute DB --local --persist-to .wrangler/state --file=...`
+#
+# When deploying to Cloudflare, replace `database_id` with the UUID shown by:
+#   wrangler d1 create competition-mission-control
+
+[vars]
+GLM_MODEL = "glm-4.7-flash"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "competition-mission-control"
+database_id = "00000000-0000-0000-0000-000000000000"
+

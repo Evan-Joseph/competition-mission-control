@@ -1,0 +1,26 @@
+.DS_Store
+
+# Prototype export archive (we keep the extracted HTML instead)
+面板设计原型.zip
+*.csv
+
+# Logs
+*.log
+
+# Env (do not commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Common build outputs (will apply if we choose a JS/TS stack)
+node_modules/
+.npm-cache/
+.next/
+out/
+dist/
+build/
+coverage/
+.wrangler/
+
+# Editors
+.idea/

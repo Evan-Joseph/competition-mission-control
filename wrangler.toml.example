@@ -1,0 +1,12 @@
+# Copy to wrangler.toml and fill in your D1 database id(s) if you want local dev / CLI deploy.
+name = "competition-mission-control"
+compatibility_date = "2026-02-07"
+
+[vars]
+GLM_MODEL = "glm-4.7-flash"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "competition-mission-control"
+database_id = "REPLACE_ME"
+

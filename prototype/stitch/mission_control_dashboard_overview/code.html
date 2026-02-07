@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>总览 Dashboard (中文版)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13c8ec",
+                        "primary-dark": "#0e9ab6",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#0f172a", // Dark graphite/navy
+                        "surface-dark": "#1e293b",
+                        "surface-darker": "#111827",
+                        "danger": "#ef4444",
+                        "warning": "#f59e0b",
+                        "success": "#10b981",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "Noto Sans SC", "sans-serif"],
+                        "body": ["IBM Plex Sans", "Noto Sans SC", "sans-serif"],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', 'Noto Sans SC', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-display {
+            font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+        }::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+        .gantt-grid {
+            background-image: linear-gradient(to right, #334155 1px, transparent 1px);
+            background-size: 100px 100%;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col overflow-hidden">
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-surface-darker flex items-center justify-between px-6 shrink-0 z-20 relative">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl">rocket_launch</span>
+<div class="flex flex-col">
+<h1 class="text-xl font-bold tracking-tight leading-none text-slate-900 dark:text-white uppercase font-display">竞赛作战面板</h1>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-mono tracking-widest mt-0.5">星历日期 2026年2月7日</span>
+</div>
+</div>
+<div class="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
+<div class="relative group w-64">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-1.5 border-none rounded-lg bg-slate-100 dark:bg-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-primary text-slate-900 dark:text-slate-200 transition-colors" placeholder="全局搜索..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-600">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                状态
+            </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-600">
+<span class="material-symbols-outlined text-[18px]">label</span>
+                标签
+            </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-600">
+<span class="material-symbols-outlined text-[18px]">person</span>
+                负责人
+            </button>
+<div class="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+<label class="flex items-center cursor-pointer gap-2 select-none group">
+<div class="relative">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary dark:peer-focus:ring-primary/50 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-danger"></div>
+</div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400 group-hover:text-danger transition-colors">仅紧急</span>
+</label>
+</div>
+<div class="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
+<div class="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+<button class="flex items-center justify-center px-3 py-1 rounded bg-white dark:bg-slate-700 shadow-sm text-xs font-medium text-primary">
+<span class="material-symbols-outlined text-[16px] mr-1">view_timeline</span> 甘特图
+            </button>
+<button class="flex items-center justify-center px-3 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700/50 text-xs font-medium text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-[16px] mr-1">format_list_bulleted</span> 列表
+            </button>
+</div>
+<div class="h-8 w-8 rounded-full bg-cover bg-center border border-slate-600 ml-2" data-alt="User profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDk-mecJPvgOWouaf0Z6hB9ehFN1R0ZVgD5iWC17fehNG7PaLoC-yj6AUVogSgT0AK-8g-ZnYIWmOZUPmFpX3qdnC0QQ7guJIwJOoJy5Y97OaMQIt0Hkqkm7Yi8Dhnb6xFj3lrPsMWaqHhm48hIMCqDsVpWTBGX2AegKQpcMljlWDTiaVjc9PIffJ5IhKpEC1idBpYEJ8L75jJQQN9V3PeS6iXHeUPD66qTpNcqBqh2pXAIVqP2Tpcj4dsyPTXNcZo6J0fP6GhxWbk')"></div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-background-light dark:bg-background-dark relative">
+<section class="grid grid-cols-5 gap-4 p-6 shrink-0">
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 shadow-sm flex flex-col justify-between h-32 group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">总竞赛数</span>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">inventory_2</span>
+</div>
+<div>
+<span class="text-4xl font-bold font-display text-slate-900 dark:text-white">12</span>
+<div class="text-xs text-success mt-1 flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-0.5">trending_up</span> 本周新增 +2
+                    </div>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 shadow-sm flex flex-col justify-between h-32 group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">报名进行中</span>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">app_registration</span>
+</div>
+<div>
+<span class="text-4xl font-bold font-display text-primary">4</span>
+<div class="text-xs text-slate-500 dark:text-slate-400 mt-1">个活跃阶段</div>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-danger/30 rounded-xl p-4 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-16 h-16 bg-danger/10 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+<div class="flex justify-between items-start relative z-10">
+<span class="text-xs font-medium text-danger uppercase tracking-wider font-bold">临近截止</span>
+<span class="material-symbols-outlined text-danger text-lg">alarm</span>
+</div>
+<div class="relative z-10">
+<span class="text-4xl font-bold font-display text-white">3</span>
+<div class="text-xs text-danger mt-1 font-medium">需在48小时内行动</div>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden ring-1 ring-offset-2 ring-offset-background-dark ring-danger/50 animate-pulse-slow">
+<div class="absolute inset-0 bg-danger/5"></div>
+<div class="flex justify-between items-start relative z-10">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">高风险</span>
+<span class="material-symbols-outlined text-danger text-lg animate-bounce">warning</span>
+</div>
+<div class="relative z-10">
+<span class="text-4xl font-bold font-display text-danger drop-shadow-lg">1</span>
+<div class="text-xs text-danger/80 mt-1 font-medium">检测到预算超支</div>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 shadow-sm flex flex-col justify-between h-32 group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start">
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">本月结果公布</span>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">emoji_events</span>
+</div>
+<div>
+<span class="text-4xl font-bold font-display text-slate-900 dark:text-white">2</span>
+<div class="text-xs text-slate-500 dark:text-slate-400 mt-1">等待发布</div>
+</div>
+</div>
+</section>
+<div class="flex-1 px-6 pb-6 min-h-0 flex flex-col">
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700/50 rounded-xl shadow-lg flex-1 flex flex-col overflow-hidden">
+<div class="h-12 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 bg-slate-50 dark:bg-slate-800/50">
+<div class="flex items-center gap-4">
+<h3 class="font-display font-semibold text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">时间轴视图</h3>
+<div class="flex items-center gap-2">
+<button class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500"><span class="material-symbols-outlined text-lg">chevron_left</span></button>
+<span class="text-sm font-medium dark:text-slate-200">2026年 2月 - 3月</span>
+<button class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500"><span class="material-symbols-outlined text-lg">chevron_right</span></button>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-xs bg-primary/10 text-primary px-2 py-1 rounded hover:bg-primary/20 transition-colors">跳转至今天</button>
+<div class="flex items-center gap-1">
+<span class="w-3 h-3 rounded-full bg-success"></span><span class="text-xs text-slate-500 dark:text-slate-400 mr-2">正常</span>
+<span class="w-3 h-3 rounded-full bg-warning"></span><span class="text-xs text-slate-500 dark:text-slate-400 mr-2">风险</span>
+<span class="w-3 h-3 rounded-full bg-danger"></span><span class="text-xs text-slate-500 dark:text-slate-400">延期</span>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-auto relative flex">
+<div class="w-64 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark z-10 sticky left-0 shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
+<div class="h-10 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex items-center px-4">
+<span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">竞赛名称</span>
+</div>
+<div class="h-24 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">全国高校商业精英挑战赛</span>
+<span class="text-xs text-slate-400 mt-1 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-success"></span> 正常</span>
+</div>
+</div>
+<div class="h-24 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group bg-danger/5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">马蹄杯大数据竞赛</span>
+<span class="text-xs text-danger mt-1 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-danger"></span> 高风险</span>
+</div>
+</div>
+<div class="h-24 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">全球创新峰会</span>
+<span class="text-xs text-slate-400 mt-1 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-warning"></span> 需复核</span>
+</div>
+</div>
+</div>
+<div class="flex-1 relative min-w-[800px] bg-slate-50 dark:bg-[#131c2e]">
+<div class="h-10 border-b border-slate-200 dark:border-slate-700 flex sticky top-0 bg-slate-50 dark:bg-[#131c2e] z-0">
+<div class="w-[100px] shrink-0 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400">2月 01</div>
+<div class="w-[100px] shrink-0 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400">2月 08</div>
+<div class="w-[100px] shrink-0 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400">2月 15</div>
+<div class="w-[100px] shrink-0 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400">2月 22</div>
+<div class="w-[100px] shrink-0 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400">3月 01</div>
+<div class="w-[100px] shrink-0 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400">3月 08</div>
+<div class="w-[100px] shrink-0 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400">3月 15</div>
+<div class="w-[100px] shrink-0 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs text-slate-400">3月 22</div>
+</div>
+<div class="absolute top-0 bottom-0 left-[85px] w-px bg-primary z-20 shadow-[0_0_8px_rgba(19,200,236,0.6)]">
+<div class="absolute -top-1 -left-[3px] w-[7px] h-[7px] rounded-full bg-primary"></div>
+<div class="absolute top-2 left-2 text-[10px] font-bold text-primary uppercase bg-background-dark/80 px-1 rounded backdrop-blur-sm">今天</div>
+</div>
+<div class="gantt-grid absolute inset-0 top-10 pointer-events-none opacity-20 dark:opacity-10"></div>
+<div class="h-24 border-b border-slate-200 dark:border-slate-800/50 relative flex items-center">
+<div class="absolute left-[0px] w-[285px] h-8 bg-gradient-to-r from-primary/20 to-primary/40 border border-primary/50 rounded-md flex items-center px-3 shadow-lg hover:brightness-110 cursor-pointer group">
+<span class="text-xs font-medium text-white drop-shadow-md truncate">作品评审 (80%)</span>
+<div class="absolute bottom-0 left-0 h-1 bg-primary rounded-bl-md" style="width: 80%"></div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-surface-darker text-white text-xs p-2 rounded shadow-xl border border-slate-700 whitespace-nowrap z-30">
+                                    负责人: Sarah J. <br/> 状态: 正常
+                                </div>
+</div>
+</div>
+<div class="h-24 border-b border-slate-200 dark:border-slate-800/50 relative flex items-center">
+<div class="absolute left-[130px] w-[240px] h-8 bg-gradient-to-r from-danger/20 to-danger/40 border border-danger/50 rounded-md flex items-center px-3 shadow-lg hover:brightness-110 cursor-pointer">
+<span class="text-xs font-medium text-white drop-shadow-md truncate">最终评分委员会</span>
+<div class="absolute -right-2 -top-2 w-4 h-4 rounded-full bg-danger flex items-center justify-center animate-pulse"><span class="material-symbols-outlined text-[10px] text-white">priority_high</span></div>
+</div>
+</div>
+<div class="h-24 border-b border-slate-200 dark:border-slate-800/50 relative flex items-center">
+<div class="absolute left-[200px] w-[230px] h-8 bg-gradient-to-r from-warning/20 to-warning/40 border border-warning/50 rounded-md flex items-center px-3 shadow-lg hover:brightness-110 cursor-pointer opacity-70">
+<span class="text-xs font-medium text-white drop-shadow-md truncate">预算审批</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<aside class="w-[28%] max-w-[420px] bg-slate-50 dark:bg-surface-darker border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 z-10">
+<div class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 bg-white dark:bg-surface-darker">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-2xl animate-pulse">smart_toy</span>
+<h2 class="font-display font-bold text-lg text-slate-900 dark:text-white">AI 助手</h2>
+</div>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-sm">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1 max-w-[90%]">
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-none p-3 shadow-sm text-sm text-slate-700 dark:text-slate-300">
+<p>早上好，指挥官。我已经分析了 <span class="text-primary font-medium">马蹄杯</span> 竞赛数据。</p>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-2xl p-3 shadow-sm text-sm text-slate-700 dark:text-slate-300">
+<p>在“最终评分”阶段存在预算超支的高风险。目前我们已超出预计工时 15%。</p>
+<div class="mt-2 p-2 bg-danger/10 border border-danger/20 rounded text-danger text-xs font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">warning</span>
+                            建议：审核评委津贴。
+                        </div>
+</div>
+<span class="text-[10px] text-slate-400 ml-1">今天 上午 09:14</span>
+</div>
+</div>
+<div class="flex gap-3 flex-row-reverse">
+<div class="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" data-alt="User Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9VxcilCQc4WniM_uxJlav09r0toTUlIl7JlsQ_JyB7iKxqpAn-iGkCnIj9ZcOGxpA8o4xHmSYqHl43xzetRVSws09z3Xikv9iUJJJL6h8qHzAx7-Y1Sdcmhl7PlqeQzw5z6etZ2KEd-TW1chriPz3GO_xalcuyn3WBFsl7V8-DUz2EsI7x_F3ScokOtatXOQD5K-Wfhw4mlAF7dHcHX3XyzDIXplMVG-k5js7G8cCq3m3LNFax6IE9j5K7x-TyOYLiumHG4Xbd4s"/>
+</div>
+<div class="flex flex-col gap-1 items-end max-w-[90%]">
+<div class="bg-primary text-white rounded-2xl rounded-tr-none p-3 shadow-md text-sm">
+<p>起草一份关于此风险给利益相关者的状态更新。</p>
+</div>
+<span class="text-[10px] text-slate-400 mr-1">今天 上午 09:16</span>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-sm">smart_toy</span>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-none p-3 px-4 shadow-sm w-16">
+<div class="flex gap-1">
+<span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+<span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-75"></span>
+<span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-150"></span>
+</div>
+</div>
+</div>
+</div>
+<div class="px-4 py-2 flex flex-wrap gap-2">
+<button class="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-primary border border-primary/20 rounded-full px-3 py-1.5 transition-colors">
+                哪些竞赛最紧急？
+            </button>
+<button class="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1.5 transition-colors">
+                按负责人列出任务
+            </button>
+<button class="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1.5 transition-colors">
+                重新安排延期任务
+            </button>
+</div>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-surface-darker">
+<div class="relative">
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-3 pl-4 pr-12 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-1 focus:ring-primary" placeholder="向 Copilot 提问..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+<div class="text-[10px] text-center text-slate-400 mt-2">AI 可能会犯错。请核实关键数据。</div>
+</div>
+</aside>
+</div>
+
+</body></html>

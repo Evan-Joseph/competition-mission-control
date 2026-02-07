@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>策略规划助手</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13c8ec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#101f22",
+                        "surface-dark": "#18282b",
+                        "surface-darker": "#142124",
+                        "border-dark": "#283639",
+                        "text-secondary": "#9db4b9",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "Noto Sans SC", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101f22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #283639; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4d51; 
+        }
+        .gantt-grid {
+            background-image: linear-gradient(to right, #283639 1px, transparent 1px);
+            background-size: 20% 100%;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden min-h-screen flex flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark px-10 py-3 bg-background-dark shrink-0">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-primary">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">任务控制中心</h2>
+</div>
+<div class="hidden md:flex items-center gap-9">
+<a class="text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">仪表盘</a>
+<a class="text-primary text-sm font-medium leading-normal" href="/planning/">规划</a>
+<a class="text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">团队</a>
+<a class="text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">设置</a>
+</div>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="hidden lg:flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-text-secondary flex border-none bg-border-dark items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-0 border-none bg-border-dark focus:border-none h-full placeholder:text-text-secondary px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal" placeholder="搜索数据..." value=""/>
+</div>
+</label>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-background-dark text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#4de1fc] transition-colors">
+<span class="truncate">新建计划</span>
+</button>
+<button class="rounded-full size-10 border border-border-dark relative grid place-items-center overflow-hidden bg-border-dark hover:bg-white/10 transition-colors" id="member-button" type="button">
+<span class="text-sm font-bold text-white" id="member-avatar">我</span>
+<div class="absolute bottom-0 right-0 size-2.5 bg-green-500 rounded-full border border-background-dark"></div>
+</button>
+</div>
+</header>
+<main class="flex-1 flex flex-col p-6 lg:p-10 gap-8 max-w-[1920px] mx-auto w-full">
+<div class="flex flex-wrap justify-between items-end gap-4 border-b border-border-dark pb-6">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 text-text-secondary text-sm uppercase tracking-wider font-bold">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+<span>策略规划助手</span>
+</div>
+<h1 class="text-white text-4xl font-bold leading-tight tracking-tight">30/60/90 天展望</h1>
+<p class="text-text-secondary text-base font-normal">可视化战术执行与战略视野。</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-dark border border-border-dark text-white text-sm font-medium hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                    导出
+                </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-dark border border-border-dark text-white text-sm font-medium hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                    分享
+                </button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full">
+<div class="flex flex-col gap-6">
+<div class="flex items-center justify-between pb-2 border-b-2 border-primary">
+<h3 class="text-xl font-bold text-white">未来 7 天</h3>
+<span class="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded">TACTICAL</span>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-dark p-4 rounded-lg border border-border-dark">
+<p class="text-text-secondary text-xs mb-1">活跃任务</p>
+<p class="text-2xl font-bold text-white" id="planning-active">-</p>
+</div>
+<div class="bg-surface-dark p-4 rounded-lg border border-border-dark">
+<p class="text-text-secondary text-xs mb-1">紧急</p>
+<p class="text-2xl font-bold text-primary" id="planning-urgent">-</p>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-sm font-bold text-text-secondary uppercase tracking-wider mt-2">Top 5 优先级任务</h4>
+<div class="flex flex-col gap-3" id="planning-top5"></div>
+</div>
+</div>
+<div class="flex flex-col gap-6 border-l-0 lg:border-l border-border-dark lg:pl-8">
+<div class="flex items-center justify-between pb-2 border-b-2 border-white/20">
+<h3 class="text-xl font-bold text-white">未来 30 天</h3>
+<span class="text-xs font-mono text-text-secondary bg-surface-dark px-2 py-1 rounded border border-border-dark">OPERATIONAL</span>
+</div>
+<div class="bg-[#2a1818] border border-red-900/50 rounded-lg p-4 flex gap-4 items-start">
+<div class="bg-red-900/30 p-2 rounded text-red-400 shrink-0">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<h4 class="text-red-100 font-bold text-sm">检测到风险</h4>
+<p class="text-red-200/70 text-xs mt-1 leading-relaxed">
+<strong class="text-white">区域决赛</strong> 和 <strong class="text-white">赞助商晚宴</strong> 在 3 月下旬存在截止日期重叠。可能发生资源冲突。
+                        </p>
+</div>
+</div>
+<div class="flex flex-col gap-4 flex-1">
+<div class="flex justify-between items-center mt-2">
+<h4 class="text-sm font-bold text-text-secondary uppercase tracking-wider">竞赛流程</h4>
+<div class="flex gap-2 text-[10px] text-text-secondary font-mono">
+<span>W1</span>
+<span>W2</span>
+<span>W3</span>
+<span>W4</span>
+</div>
+</div>
+<div class="bg-surface-dark rounded-lg border border-border-dark p-4 relative flex-1 min-h-[300px]">
+<div class="absolute inset-0 gantt-grid opacity-20 pointer-events-none rounded-lg"></div>
+<div class="flex flex-col gap-6 relative z-10 pt-2">
+<div class="flex flex-col gap-1 group cursor-pointer">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-white font-medium">区域决赛</span>
+<span class="text-text-secondary">3月 10-15</span>
+</div>
+<div class="h-2 w-full bg-border-dark rounded-full overflow-hidden relative">
+<div class="absolute left-[10%] w-[30%] h-full bg-primary rounded-full group-hover:bg-white transition-colors"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 group cursor-pointer">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-white font-medium">开发冲刺 4</span>
+<span class="text-text-secondary">3月 12-25</span>
+</div>
+<div class="h-2 w-full bg-border-dark rounded-full overflow-hidden relative">
+<div class="absolute left-[15%] w-[45%] h-full bg-purple-500 rounded-full group-hover:bg-purple-400 transition-colors"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 group cursor-pointer">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-white font-medium">赞助商晚宴</span>
+<span class="text-red-400 font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]">error</span> 3月 28
+                                    </span>
+</div>
+<div class="h-2 w-full bg-border-dark rounded-full overflow-hidden relative">
+<div class="absolute left-[70%] w-[5%] h-full bg-red-500 rounded-full animate-pulse"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 group cursor-pointer">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-white font-medium">外联活动</span>
+<span class="text-text-secondary">整月</span>
+</div>
+<div class="h-2 w-full bg-border-dark rounded-full overflow-hidden relative">
+<div class="absolute left-[0%] w-[80%] h-full bg-green-500/50 rounded-full group-hover:bg-green-400 transition-colors"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-6 border-l-0 lg:border-l border-border-dark lg:pl-8">
+<div class="flex items-center justify-between pb-2 border-b-2 border-white/20">
+<h3 class="text-xl font-bold text-white">更远规划</h3>
+<span class="text-xs font-mono text-text-secondary bg-surface-dark px-2 py-1 rounded border border-border-dark">STRATEGIC</span>
+</div>
+<div class="rounded-xl p-[1px] bg-gradient-to-br from-primary via-purple-500 to-primary">
+<div class="bg-surface-darker rounded-[11px] p-5 flex flex-col gap-4">
+<div class="flex items-center gap-2 text-primary font-bold text-sm">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+                            AI 建议
+                        </div>
+<p class="text-white text-sm leading-relaxed">
+                            基于历史速度，Q2 的团队工作量不平衡。预计后勤部门将超负荷 <span class="text-primary font-mono">140%</span>。
+                        </p>
+<button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-[#4de1fc] text-background-dark font-bold py-2.5 px-4 rounded-lg transition-all shadow-[0_0_15px_rgba(19,200,236,0.3)] hover:shadow-[0_0_20px_rgba(19,200,236,0.5)]">
+<span class="material-symbols-outlined text-[18px]">balance</span>
+                            生成团队工作量平衡建议
+                        </button>
+</div>
+</div>
+<div class="flex flex-col gap-4 flex-1">
+<h4 class="text-sm font-bold text-text-secondary uppercase tracking-wider mt-2">季度目标</h4>
+<div class="space-y-3">
+<div class="flex gap-4 p-3 rounded-lg hover:bg-surface-dark transition-colors border border-transparent hover:border-border-dark">
+<div class="flex flex-col items-center gap-1 min-w-[3rem]">
+<span class="text-xs font-mono text-text-secondary">4月</span>
+<span class="text-lg font-bold text-white">15</span>
+</div>
+<div class="flex flex-col gap-1">
+<h5 class="text-white font-medium">全国锦标赛</h5>
+<p class="text-xs text-text-secondary">场地选择与团队名单最终确定。</p>
+</div>
+</div>
+<div class="flex gap-4 p-3 rounded-lg hover:bg-surface-dark transition-colors border border-transparent hover:border-border-dark">
+<div class="flex flex-col items-center gap-1 min-w-[3rem]">
+<span class="text-xs font-mono text-text-secondary">5月</span>
+<span class="text-lg font-bold text-white">01</span>
+</div>
+<div class="flex flex-col gap-1">
+<h5 class="text-white font-medium">全球扩展计划</h5>
+<p class="text-xs text-text-secondary">向董事会提交提案。</p>
+</div>
+</div>
+<div class="flex gap-4 p-3 rounded-lg hover:bg-surface-dark transition-colors border border-transparent hover:border-border-dark">
+<div class="flex flex-col items-center gap-1 min-w-[3rem]">
+<span class="text-xs font-mono text-text-secondary">6月</span>
+<span class="text-lg font-bold text-white">20</span>
+</div>
+<div class="flex flex-col gap-1">
+<h5 class="text-white font-medium">夏季创新训练营</h5>
+<p class="text-xs text-text-secondary">课程锁定与导师入职。</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-6">
+<h4 class="text-sm font-bold text-text-secondary uppercase tracking-wider mb-3">目标市场</h4>
+<div class="rounded-lg overflow-hidden h-32 w-full relative bg-surface-dark border border-border-dark group">
+<div class="absolute inset-0 bg-cover bg-center opacity-60 group-hover:opacity-80 transition-opacity" data-alt="Abstract digital world map showing network connections" data-location="Global View" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAsEfEij36sIHxXF09TmB_zh0XVoRNemwHdd2C4tUqfcs2keMIn1iGbkxK6D9XmjpoW7LbUD5lGsubWnNgI5cjDFEZ-MHZePbADvbeVPaWks_VTcoLIv5TLJLd3Ssd0E3l8zC3r6YR-BW1sVRsEflJVsnbEbi9YhI1_Krp-6EaYWo8dgAlQqoKg7ZbyLx8LGxPloUq-ttERD_Iy6YRNA6ngCIfxNeUNiexLxHLyq9gWp1Ql4rIjoJdvyG8XyZhZf49G-h3p2y-b2dg");'>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex gap-2">
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm">亚太地区</span>
+<span class="bg-white/10 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm">欧洲中东非洲</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+<div id="modal-root"></div>
+<script type="module" src="/app/planning.js"></script>
+</body></html>
