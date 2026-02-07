@@ -2,8 +2,26 @@ import type { Competition, Member } from "../lib/types";
 import { parseISODate } from "../lib/date";
 import { STATE_LABEL } from "../lib/compute";
 
-export type GroupBy = "none" | "source" | "result" | "urgency" | "owner" | "state";
+export type GroupBy = "none" | "source" | "result" | "urgency" | "deadline" | "owner" | "state";
 export type SortBy = "next" | "name" | "result";
+
+function localISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function isMissedRegistration(c: Competition, now: Date): boolean {
+  const regEnd = String(c.registration_end || "").trim();
+  if (!regEnd) return false;
+  const today = localISODate(now);
+  if (regEnd >= today) return false;
+
+  const st = String(c.progress_state || "").trim();
+  if (!st) return true;
+  return st === "not_started" || st === "registering";
+}
 
 function displayName(c: Competition): string {
   return String(c.display_name || c.name || "");
@@ -72,6 +90,17 @@ function urgencyBucket(comp: Competition): Bucket {
   return { key: "urgency:future", title: "更远（>14天）" };
 }
 
+function deadlineBucket(comp: Competition): Bucket {
+  const dl = comp.nextDeadline?.daysLeft;
+  if (typeof dl !== "number") return { key: "deadline:unknown", title: "未知" };
+  if (dl < 0) return { key: "deadline:overdue", title: "已逾期" };
+  if (dl === 0) return { key: "deadline:today", title: "今天" };
+  if (dl === 1) return { key: "deadline:tomorrow", title: "明天" };
+  if (dl <= 7) return { key: "deadline:next7", title: "7天内" };
+  if (dl <= 30) return { key: "deadline:next30", title: "30天内" };
+  return { key: "deadline:later", title: "更远（>30天）" };
+}
+
 type Group = { key: string; title: string; competitions: Competition[]; stats: { count: number; urgent3: number; urgent7: number; overdue: number } };
 
 function groupCompetitions(list: Competition[], groupBy: GroupBy, members: Member[]): Group[] {
@@ -97,6 +126,11 @@ function groupCompetitions(list: Competition[], groupBy: GroupBy, members: Membe
       const b = urgencyBucket(c);
       add(b.key, b.title, c);
     }
+  } else if (groupBy === "deadline") {
+    for (const c of list) {
+      const b = deadlineBucket(c);
+      add(b.key, b.title, c);
+    }
   } else if (groupBy === "owner") {
     for (const c of list) {
       const ownerId = String(c.progress_owner_member_id || "").trim();
@@ -105,6 +139,10 @@ function groupCompetitions(list: Competition[], groupBy: GroupBy, members: Membe
     }
   } else if (groupBy === "state") {
     for (const c of list) {
+      if (isMissedRegistration(c, now)) {
+        add("state:missed", "已错过", c);
+        continue;
+      }
       const st = String(c.progress_state || "").trim();
       if (!st) add("state:unmaintained", "未维护", c);
       else add(`state:${st}`, STATE_LABEL[st] || st, c);
@@ -130,6 +168,19 @@ function groupCompetitions(list: Competition[], groupBy: GroupBy, members: Membe
       const idx = order.indexOf(key);
       return idx === -1 ? 99 : idx;
     }
+    if (groupBy === "deadline") {
+      const order = [
+        "deadline:overdue",
+        "deadline:today",
+        "deadline:tomorrow",
+        "deadline:next7",
+        "deadline:next30",
+        "deadline:later",
+        "deadline:unknown",
+      ];
+      const idx = order.indexOf(key);
+      return idx === -1 ? 99 : idx;
+    }
     if (groupBy === "owner") {
       if (key === "owner:unassigned") return -1;
       const id = key.slice("owner:".length);
@@ -138,6 +189,7 @@ function groupCompetitions(list: Competition[], groupBy: GroupBy, members: Membe
     }
     if (groupBy === "state") {
       const order = [
+        "state:missed",
         "state:unmaintained",
         "state:registering",
         "state:registered",
@@ -199,4 +251,3 @@ export function buildRows(args: {
 
   return { rows, groupKeys: keys };
 }
-
