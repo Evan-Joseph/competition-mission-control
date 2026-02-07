@@ -646,6 +646,8 @@ function ListView(props: {
   todayISO: YMD;
   onOpenCompetition: (id: string) => void;
 }) {
+  const [overdueExpanded, setOverdueExpanded] = useState(false);
+
   const groups = useMemo(() => {
     const map = new Map<ReturnType<typeof groupKeyForDate>, CompetitionEvent[]>();
     for (const ev of props.events) {
@@ -659,87 +661,119 @@ function ListView(props: {
       .filter((g) => g.items.length > 0);
   }, [props.events, props.todayISO]);
 
+  const renderEvent = (ev: CompetitionEvent) => {
+    const comp = props.competitionsById.get(ev.competition_id);
+    if (!comp) return null;
+    const missed = isMissedRegistration(comp, props.todayISO);
+    const d = parseYMD(ev.date);
+    const month = d ? `${d.getMonth() + 1}月` : ev.date.slice(5, 7) + "月";
+    const day = d ? String(d.getDate()).padStart(2, "0") : ev.date.slice(8, 10);
+    const typeBadge =
+      missed
+        ? "bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+        : ev.type === "registration_deadline"
+          ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800"
+          : ev.type === "submission_deadline"
+            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800"
+            : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800";
+    const tone =
+      missed
+        ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20"
+        : ev.type === "registration_deadline"
+          ? "border-orange-500/40 bg-orange-500/5 dark:bg-orange-500/10"
+          : ev.type === "submission_deadline"
+            ? "border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10"
+            : "border-purple-500/30 bg-purple-500/5 dark:bg-purple-500/10";
+    return (
+      <button
+        key={ev.event_id}
+        type="button"
+        className={["w-full text-left group relative flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md", tone].join(" ")}
+        onClick={() => props.onOpenCompetition(comp.id)}
+      >
+        <div className="flex flex-col items-center justify-center min-w-[3rem] text-center">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">{month}</span>
+          <span className="text-xl font-bold text-slate-900 dark:text-white">{day}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 min-w-0">
+            <h4
+              className={[
+                "text-base font-semibold truncate",
+                missed ? "text-slate-500 dark:text-slate-300 line-through" : "text-slate-900 dark:text-white",
+              ].join(" ")}
+            >
+              {comp.name}
+            </h4>
+            <span className={["px-2 py-0.5 rounded text-[10px] font-medium border shrink-0", typeBadge].join(" ")}>
+              {eventTypeLabel(ev.type)}
+            </span>
+            {missed ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-200/60 dark:bg-slate-700/50 text-slate-600 dark:text-slate-200 border border-slate-300/50 dark:border-slate-600/40 shrink-0">
+                已错过报名
+              </span>
+            ) : null}
+            {comp.included_in_plan ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 shrink-0">规划中</span>
+            ) : null}
+            {comp.registered ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                已报名
+              </span>
+            ) : null}
+          </div>
+          {comp.status_text ? <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{clampText(comp.status_text, 120)}</p> : null}
+        </div>
+        <span className="material-symbols-outlined text-slate-300 group-hover:text-primary text-[18px]">chevron_right</span>
+      </button>
+    );
+  };
+
   return (
     <main className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-background-dark/50">
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-8 pb-24">
         {groups.length ? (
-          groups.map((g) => (
-            <section key={g.key}>
-              <div className="flex items-center justify-between mb-4 sticky top-0 bg-white/95 dark:bg-[#111822]/95 backdrop-blur-sm py-2 z-10">
-                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{g.title}</h3>
-                {g.key === "today" ? <span className="text-xs text-slate-400">{formatCNDate(parseYMD(props.todayISO) || new Date())}</span> : null}
-              </div>
-              <div className="space-y-3">
-                {g.items.map((ev) => {
-                  const comp = props.competitionsById.get(ev.competition_id);
-                  if (!comp) return null;
-                  const missed = isMissedRegistration(comp, props.todayISO);
-                  const d = parseYMD(ev.date);
-                  const month = d ? `${d.getMonth() + 1}月` : ev.date.slice(5, 7) + "月";
-                  const day = d ? String(d.getDate()).padStart(2, "0") : ev.date.slice(8, 10);
-                  const typeBadge =
-                    missed
-                      ? "bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-                      : ev.type === "registration_deadline"
-                        ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800"
-                        : ev.type === "submission_deadline"
-                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800"
-                          : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800";
-                  const tone =
-                    missed
-                      ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20"
-                      : ev.type === "registration_deadline"
-                        ? "border-orange-500/40 bg-orange-500/5 dark:bg-orange-500/10"
-                        : ev.type === "submission_deadline"
-                          ? "border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10"
-                          : "border-purple-500/30 bg-purple-500/5 dark:bg-purple-500/10";
-                  return (
-                    <button
-                      key={ev.event_id}
-                      type="button"
-                      className={["w-full text-left group relative flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md", tone].join(" ")}
-                      onClick={() => props.onOpenCompetition(comp.id)}
+          groups.map((g) => {
+            if (g.key === "overdue") {
+              const open = overdueExpanded;
+              return (
+                <section key={g.key} className="opacity-60 hover:opacity-100 transition-opacity">
+                  <button
+                    className="flex items-center gap-2 w-full text-left mb-3 group"
+                    type="button"
+                    onClick={() => setOverdueExpanded((x) => !x)}
+                  >
+                    <span
+                      className={[
+                        "material-symbols-outlined text-slate-400 text-sm transition-transform group-hover:rotate-90",
+                        open ? "rotate-90" : "",
+                      ].join(" ")}
                     >
-                      <div className="flex flex-col items-center justify-center min-w-[3rem] text-center">
-                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">{month}</span>
-                        <span className="text-xl font-bold text-slate-900 dark:text-white">{day}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 min-w-0">
-                          <h4
-                            className={[
-                              "text-base font-semibold truncate",
-                              missed ? "text-slate-500 dark:text-slate-300 line-through" : "text-slate-900 dark:text-white",
-                            ].join(" ")}
-                          >
-                            {comp.name}
-                          </h4>
-                          <span className={["px-2 py-0.5 rounded text-[10px] font-medium border shrink-0", typeBadge].join(" ")}>
-                            {eventTypeLabel(ev.type)}
-                          </span>
-                          {missed ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-200/60 dark:bg-slate-700/50 text-slate-600 dark:text-slate-200 border border-slate-300/50 dark:border-slate-600/40 shrink-0">
-                              已错过报名
-                            </span>
-                          ) : null}
-                          {comp.included_in_plan ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 shrink-0">规划中</span>
-                          ) : null}
-                          {comp.registered ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                              已报名
-                            </span>
-                          ) : null}
-                        </div>
-                        {comp.status_text ? <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{clampText(comp.status_text, 120)}</p> : null}
-                      </div>
-                      <span className="material-symbols-outlined text-slate-300 group-hover:text-primary text-[18px]">chevron_right</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ))
+                      chevron_right
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      {g.title} ({g.items.length})
+                    </h3>
+                    <div className="h-px bg-slate-200 dark:bg-[#243347] flex-1 ml-2"></div>
+                  </button>
+                  {open ? <div className="space-y-3">{g.items.map(renderEvent)}</div> : null}
+                </section>
+              );
+            }
+
+            return (
+              <section key={g.key}>
+                <div className="flex items-center justify-between mb-4 sticky top-0 bg-white/95 dark:bg-[#111822]/95 backdrop-blur-sm py-2 z-10">
+                  <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    {g.key === "today" ? <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span> : null}
+                    {g.title}
+                  </h3>
+                  {g.key === "today" ? <span className="text-xs text-slate-400">{formatCNDate(parseYMD(props.todayISO) || new Date())}</span> : null}
+                </div>
+                <div className="space-y-3">{g.items.map(renderEvent)}</div>
+              </section>
+            );
+          })
         ) : (
           <div className="h-full grid place-items-center text-slate-500 dark:text-slate-400">
             <div className="text-center">
@@ -840,14 +874,32 @@ function CalendarView(props: {
           <div className="flex h-full min-w-[800px] divide-x divide-slate-200 dark:divide-[#243347]">
             {days.map((d, idx) => {
               const dateISO = localISODate(d);
+              const isToday = dateISO === props.todayISO;
               const items = eventsByDate.get(dateISO) || [];
               return (
                 <div key={dateISO} className="flex-1 min-w-[140px] flex flex-col bg-white dark:bg-[#111822]">
-                  <div className="sticky top-0 z-10 p-3 text-center border-b border-slate-200 dark:border-[#243347] bg-slate-50 dark:bg-[#161f2c]">
+                  <div
+                    className={[
+                      "sticky top-0 z-10 p-3 text-center border-b border-slate-200 dark:border-[#243347]",
+                      isToday ? "bg-primary/5 dark:bg-primary/5" : "bg-slate-50 dark:bg-[#161f2c]",
+                    ].join(" ")}
+                  >
                     <span className="block text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 font-semibold mb-1">{labels[idx]}</span>
-                    <div className="inline-flex items-center justify-center size-8 rounded-full text-slate-900 dark:text-white text-lg font-bold">{String(d.getDate()).padStart(2, "0")}</div>
+                    <div
+                      className={[
+                        "inline-flex items-center justify-center size-8 rounded-full text-lg font-bold",
+                        isToday ? "bg-primary text-white shadow-lg shadow-primary/30" : "text-slate-900 dark:text-white",
+                      ].join(" ")}
+                    >
+                      {String(d.getDate()).padStart(2, "0")}
+                    </div>
                   </div>
-                  <div className="flex-1 p-2 space-y-2 hover:bg-slate-50 dark:hover:bg-[#161f2c]/50 transition-colors">
+                  <div
+                    className={[
+                      "flex-1 p-2 space-y-2 transition-colors",
+                      isToday ? "bg-primary/5 dark:bg-primary/5" : "hover:bg-slate-50 dark:hover:bg-[#161f2c]/50",
+                    ].join(" ")}
+                  >
                     {items.length ? (
                       items.map((ev) => {
                         const comp = props.competitionsById.get(ev.competition_id);
@@ -980,6 +1032,7 @@ function CalendarView(props: {
             {cells.map((d) => {
               const dateISO = localISODate(d);
               const inMonth = d.getMonth() === anchor.getMonth();
+              const isToday = dateISO === props.todayISO;
               const items = eventsByDate.get(dateISO) || [];
               return (
                 <div
@@ -987,9 +1040,9 @@ function CalendarView(props: {
                   className={[
                     "border-b border-r border-gray-100 dark:border-border-dark/50 p-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group overflow-hidden",
                     !inMonth ? "bg-gray-50/50 dark:bg-[#151d29]/30" : "",
+                    isToday ? "bg-primary/5 dark:bg-primary/10 relative ring-2 ring-inset ring-primary z-10" : "",
                   ].join(" ")}
                   onClick={() => {
-                    if (!items.length) return;
                     props.onAnchorDateChange(dateISO);
                     props.onModeChange("week");
                   }}
@@ -997,12 +1050,20 @@ function CalendarView(props: {
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key !== "Enter" && e.key !== " ") return;
-                    if (!items.length) return;
                     props.onAnchorDateChange(dateISO);
                     props.onModeChange("week");
                   }}
                 >
-                  <span className={["text-sm font-medium block mb-1", inMonth ? "text-slate-700 dark:text-text-secondary group-hover:text-primary" : "text-slate-400 dark:text-text-secondary/50"].join(" ")}>
+                  <span
+                    className={[
+                      "text-sm font-medium block mb-1",
+                      isToday
+                        ? "text-primary font-bold"
+                        : inMonth
+                          ? "text-slate-700 dark:text-text-secondary group-hover:text-primary"
+                          : "text-slate-400 dark:text-text-secondary/50",
+                    ].join(" ")}
+                  >
                     {d.getDate()}
                   </span>
                   <div className="space-y-1">
