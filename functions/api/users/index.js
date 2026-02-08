@@ -1,5 +1,6 @@
-import { json, errorJson, readJson } from "../../_lib/http.js";
+import { json, errorJson, readJson, getUser } from "../../_lib/http.js";
 import { requireDB, dbAll } from "../../_lib/db.js";
+import { ensureAuditSchema, ensureTeamUsersSchema } from "../../_lib/schema.js";
 
 const DEFAULT_USERS = ["高神舟", "聂睿", "孙慧智", "于泽通", "耿孝然"];
 
@@ -11,15 +12,7 @@ function normalizeName(v) {
 }
 
 async function ensureUsersTable(db) {
-  await db
-    .prepare(
-      `CREATE TABLE IF NOT EXISTS team_users (
-         id TEXT PRIMARY KEY,
-         name TEXT NOT NULL UNIQUE COLLATE NOCASE,
-         created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
-       )`
-    )
-    .run();
+  await ensureTeamUsersSchema(db);
 
   const countRow = await db.prepare("SELECT COUNT(1) AS count FROM team_users").first();
   const count = Number(countRow?.count || 0);
@@ -70,7 +63,8 @@ export async function onRequest(context) {
     }
 
     try {
-      const actor = String(request.headers.get("x-mmc-user") || "").trim() || "系统";
+      const actor = getUser(request, "系统");
+      await ensureAuditSchema(db);
       await db
         .prepare(
           `INSERT INTO audit_logs (id, iso, user, action, target_type, target_id, target, details)

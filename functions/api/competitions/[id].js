@@ -1,5 +1,6 @@
-import { json, errorJson, readJson } from "../../_lib/http.js";
+import { json, errorJson, readJson, getUser } from "../../_lib/http.js";
 import { requireDB } from "../../_lib/db.js";
+import { ensureAuditSchema, ensureCompetitionsSchema } from "../../_lib/schema.js";
 
 const YMD_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -168,30 +169,43 @@ export async function onRequest(context) {
   const id = params.id;
   if (!id) return errorJson(400, "competition id is required");
 
-  if (request.method === "GET") {
-    const row = await db
-      .prepare(
-        `SELECT
-           id,
-           name,
-           registration_deadline_at,
-           submission_deadline_at,
-           result_deadline_at,
-           included_in_plan,
-           registered,
-           status_text,
-           team_members,
-           links,
-           created_at,
-           updated_at
-         FROM competitions
-         WHERE id = ?1`
-      )
-      .bind(id)
-      .first();
+  try {
+    await ensureCompetitionsSchema(db);
+    if (request.method === "PATCH") {
+      await ensureAuditSchema(db);
+    }
+  } catch (e) {
+    return errorJson(500, "failed to initialize schema", { detail: String(e && e.message ? e.message : e) });
+  }
 
-    if (!row) return errorJson(404, "competition not found");
-    return json({ ok: true, competition: rowToCompetition(row) });
+  if (request.method === "GET") {
+    try {
+      const row = await db
+        .prepare(
+          `SELECT
+             id,
+             name,
+             registration_deadline_at,
+             submission_deadline_at,
+             result_deadline_at,
+             included_in_plan,
+             registered,
+             status_text,
+             team_members,
+             links,
+             created_at,
+             updated_at
+           FROM competitions
+           WHERE id = ?1`
+        )
+        .bind(id)
+        .first();
+
+      if (!row) return errorJson(404, "competition not found");
+      return json({ ok: true, competition: rowToCompetition(row) });
+    } catch (e) {
+      return errorJson(500, "failed to load competition", { detail: String(e && e.message ? e.message : e) });
+    }
   }
 
   if (request.method === "PATCH") {
@@ -271,36 +285,40 @@ export async function onRequest(context) {
       links: finalLinks,
     });
 
-    await db
-      .prepare(
-        `UPDATE competitions
-         SET registration_deadline_at = ?2,
-             submission_deadline_at = ?3,
-             result_deadline_at = ?4,
-             included_in_plan = ?5,
-             registered = ?6,
-             status_text = ?7,
-             team_members = ?8,
-             links = ?9,
-             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
-         WHERE id = ?1`
-      )
-      .bind(
-        id,
-        finalReg,
-        finalSub || null,
-        finalRes || null,
-        finalIncluded ? 1 : 0,
-        finalRegistered ? 1 : 0,
-        finalStatus,
-        JSON.stringify(finalTeam),
-        JSON.stringify(finalLinks)
-      )
-      .run();
+    try {
+      await db
+        .prepare(
+          `UPDATE competitions
+           SET registration_deadline_at = ?2,
+               submission_deadline_at = ?3,
+               result_deadline_at = ?4,
+               included_in_plan = ?5,
+               registered = ?6,
+               status_text = ?7,
+               team_members = ?8,
+               links = ?9,
+               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+           WHERE id = ?1`
+        )
+        .bind(
+          id,
+          finalReg,
+          finalSub || null,
+          finalRes || null,
+          finalIncluded ? 1 : 0,
+          finalRegistered ? 1 : 0,
+          finalStatus,
+          JSON.stringify(finalTeam),
+          JSON.stringify(finalLinks)
+        )
+        .run();
+    } catch (e) {
+      return errorJson(500, "failed to update competition", { detail: String(e && e.message ? e.message : e) });
+    }
 
     if (changedKeys.length) {
       try {
-        const user = String(request.headers.get("x-mmc-user") || "").trim() || "本地用户";
+        const user = getUser(request);
         const id2 = "al_" + crypto.randomUUID().replaceAll("-", "");
         const iso = new Date().toISOString();
         const details = summarizeChangedKeys(changedKeys);
@@ -315,28 +333,32 @@ export async function onRequest(context) {
       }
     }
 
-    const updated = await db
-      .prepare(
-        `SELECT
-           id,
-           name,
-           registration_deadline_at,
-           submission_deadline_at,
-           result_deadline_at,
-           included_in_plan,
-           registered,
-           status_text,
-           team_members,
-           links,
-           created_at,
-           updated_at
-         FROM competitions
-         WHERE id = ?1`
-      )
-      .bind(id)
-      .first();
+    try {
+      const updated = await db
+        .prepare(
+          `SELECT
+             id,
+             name,
+             registration_deadline_at,
+             submission_deadline_at,
+             result_deadline_at,
+             included_in_plan,
+             registered,
+             status_text,
+             team_members,
+             links,
+             created_at,
+             updated_at
+           FROM competitions
+           WHERE id = ?1`
+        )
+        .bind(id)
+        .first();
 
-    return json({ ok: true, competition: rowToCompetition(updated) });
+      return json({ ok: true, competition: rowToCompetition(updated) });
+    } catch (e) {
+      return errorJson(500, "failed to load updated competition", { detail: String(e && e.message ? e.message : e) });
+    }
   }
 
   return errorJson(405, "Method not allowed", { allow: ["GET", "PATCH"] });

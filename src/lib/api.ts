@@ -1,6 +1,15 @@
 import type { AIReply, AuditLogEntry, Competition, CompetitionPatch, WhiteboardDoc, WhiteboardItem } from "./types";
 import { getCurrentIdentityUser } from "./identity";
 
+/**
+ * Encode user name for use in HTTP headers.
+ * HTTP headers only support ISO-8859-1 characters, so we URL-encode
+ * the user name to safely transmit Unicode characters like Chinese.
+ */
+function getEncodedUser(): string {
+  return encodeURIComponent(getCurrentIdentityUser());
+}
+
 async function apiFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(path, {
     ...opts,
@@ -39,7 +48,7 @@ export async function listCompetitions(): Promise<Competition[]> {
 export async function patchCompetition(id: string, patch: CompetitionPatch): Promise<Competition> {
   const data = await apiFetch<{ ok: true; competition: Competition }>(`/api/competitions/${encodeURIComponent(id)}`, {
     method: "PATCH",
-    headers: { "content-type": "application/json", "x-mmc-user": getCurrentIdentityUser() },
+    headers: { "content-type": "application/json", "x-mmc-user": getEncodedUser() },
     body: JSON.stringify({ patch }),
   });
   return data.competition;
@@ -51,7 +60,7 @@ export async function aiAsk(
 ): Promise<AIReply> {
   const data = await apiFetch<{ ok: true; reply: AIReply }>("/api/ai", {
     method: "POST",
-    headers: { "content-type": "application/json", "x-mmc-user": getCurrentIdentityUser() },
+    headers: { "content-type": "application/json", "x-mmc-user": getEncodedUser() },
     body: JSON.stringify({ message, useWebSearch: Boolean(opts.useWebSearch), includeMissed: Boolean(opts.includeMissed), todayISO: opts.todayISO }),
   });
   return data.reply;
@@ -75,7 +84,7 @@ export async function listUsers(): Promise<string[]> {
 export async function createUser(name: string): Promise<string> {
   const data = await apiFetch<{ ok: true; user: string }>("/api/users", {
     method: "POST",
-    headers: { "content-type": "application/json", "x-mmc-user": getCurrentIdentityUser() },
+    headers: { "content-type": "application/json", "x-mmc-user": getEncodedUser() },
     body: JSON.stringify({ name }),
   });
   return String(data.user || "").trim();
@@ -89,7 +98,7 @@ export async function getWhiteboard(competitionId: string): Promise<WhiteboardDo
 export async function putWhiteboard(competitionId: string, body: { items: WhiteboardItem[]; baseVersion: number }): Promise<WhiteboardDoc> {
   const data = await apiFetch<{ ok: true; whiteboard: WhiteboardDoc }>(`/api/whiteboards/${encodeURIComponent(competitionId)}`, {
     method: "PUT",
-    headers: { "content-type": "application/json", "x-mmc-user": getCurrentIdentityUser() },
+    headers: { "content-type": "application/json", "x-mmc-user": getEncodedUser() },
     body: JSON.stringify(body),
   });
   return data.whiteboard;

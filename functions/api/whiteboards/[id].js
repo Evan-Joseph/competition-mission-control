@@ -1,5 +1,6 @@
-import { json, errorJson, readJson } from "../../_lib/http.js";
+import { json, errorJson, readJson, getUser } from "../../_lib/http.js";
 import { requireDB } from "../../_lib/db.js";
+import { ensureAuditSchema, ensureWhiteboardsSchema } from "../../_lib/schema.js";
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -66,18 +67,31 @@ export async function onRequest(context) {
   const id = params.id;
   if (!id) return errorJson(400, "whiteboard id is required");
 
-  if (request.method === "GET") {
-    const row = await db.prepare("SELECT competition_id, items_json, version, updated_at FROM whiteboards WHERE competition_id = ?1").bind(id).first();
-    const version = row ? Number(row.version) || 0 : 0;
-    const etag = makeEtag(id, version);
-
-    const inm = request.headers.get("if-none-match");
-    if (inm && inm === etag) {
-      return new Response(null, { status: 304, headers: { etag } });
+  try {
+    await ensureWhiteboardsSchema(db);
+    if (request.method === "PUT" || request.method === "PATCH") {
+      await ensureAuditSchema(db);
     }
+  } catch (e) {
+    return errorJson(500, "failed to initialize schema", { detail: String(e && e.message ? e.message : e) });
+  }
 
-    const items = row ? sanitizeItems(safeParseJsonArray(row.items_json, [])) : [];
-    return json({ ok: true, whiteboard: { competition_id: id, items, version, updated_at: row?.updated_at || null } }, { headers: { etag } });
+  if (request.method === "GET") {
+    try {
+      const row = await db.prepare("SELECT competition_id, items_json, version, updated_at FROM whiteboards WHERE competition_id = ?1").bind(id).first();
+      const version = row ? Number(row.version) || 0 : 0;
+      const etag = makeEtag(id, version);
+
+      const inm = request.headers.get("if-none-match");
+      if (inm && inm === etag) {
+        return new Response(null, { status: 304, headers: { etag } });
+      }
+
+      const items = row ? sanitizeItems(safeParseJsonArray(row.items_json, [])) : [];
+      return json({ ok: true, whiteboard: { competition_id: id, items, version, updated_at: row?.updated_at || null } }, { headers: { etag } });
+    } catch (e) {
+      return errorJson(500, "failed to load whiteboard", { detail: String(e && e.message ? e.message : e) });
+    }
   }
 
   if (request.method === "PUT" || request.method === "PATCH") {
@@ -113,7 +127,7 @@ export async function onRequest(context) {
       .run();
 
     try {
-      const actor = String(request.headers.get("x-mmc-user") || "").trim() || "本地用户";
+      const actor = getUser(request);
       await db
         .prepare(
           `INSERT INTO audit_logs (id, iso, user, action, target_type, target_id, target, details)
