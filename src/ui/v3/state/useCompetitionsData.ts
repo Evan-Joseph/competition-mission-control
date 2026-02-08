@@ -29,8 +29,10 @@ export function useCompetitionsData() {
       if (!cur) return cur;
       return cur.map((c) => (c.id === id ? updated : c));
     });
+    // Read through backend after write, avoiding stale edge/local caches.
+    await queryClient.invalidateQueries({ queryKey: ["competitions"] });
     // Backend (D1) writes audit logs; refresh UI views that rely on them.
-    queryClient.invalidateQueries({ queryKey: ["auditLogs"] });
+    await queryClient.invalidateQueries({ queryKey: ["auditLogs"] });
 
     // If this competition had legacy local patches from v2/v3 fallback mode, clear them now.
     const localPatches = listOfflinePatches();

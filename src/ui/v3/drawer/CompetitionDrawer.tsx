@@ -78,6 +78,7 @@ export default function CompetitionDrawer(props: {
   });
 
   const activityLogs = useMemo(() => auditQ.data || [], [auditQ.data]);
+  const auditErrorText = auditQ.error instanceof Error ? auditQ.error.message : "加载失败";
 
   const save = async () => {
     const msg = validateCompetitionDraft(draft);
@@ -438,7 +439,9 @@ export default function CompetitionDrawer(props: {
             <div className="p-8 h-full overflow-y-auto">
               <div className="space-y-8 relative pl-2">
                 <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-border-dark"></div>
-                {activityLogs.length > 0 ? (
+                {auditQ.isError ? (
+                  <div className="pl-8 text-amber-300 text-sm">审计日志不可用：{auditErrorText}</div>
+                ) : activityLogs.length > 0 ? (
                   activityLogs.map((log, idx) => (
                     <div key={log.id} className="relative pl-8">
                       <div

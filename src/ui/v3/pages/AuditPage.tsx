@@ -55,6 +55,7 @@ export default function AuditPage() {
   });
 
   const logs = auditQ.data || [];
+  const auditErrorText = auditQ.error instanceof Error ? auditQ.error.message : "加载失败";
 
   const filteredLogs = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -132,6 +133,9 @@ export default function AuditPage() {
 
       {/* Table */}
       <div className="bg-surface-dark border border-border-dark rounded-2xl overflow-hidden shadow-xl">
+        {auditQ.isError ? (
+          <div className="px-6 py-4 border-b border-border-dark text-sm text-amber-300">日志接口不可用：{auditErrorText}</div>
+        ) : null}
         {filteredLogs.length > 0 ? (
           <table className="w-full text-left">
             <thead>

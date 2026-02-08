@@ -70,7 +70,7 @@ export default function DashboardPage() {
   const focus = useMemo(() => {
     if (todayTime === null) return competitions[0] || null;
 
-    const list = competitions
+    const allActive = competitions
       .map((c) => {
         const invalid = invalidCompetitionReason(c);
         const missed = invalid ? false : isMissedRegistration(c, todayISO);
@@ -79,10 +79,12 @@ export default function DashboardPage() {
         const due = invalid ? null : nextCompetitionDue(c, todayISO);
         return { c, invalid, missed, ended, unplanned, due };
       })
-      .filter((x) => !x.invalid && !x.missed && !x.ended && !x.unplanned && x.due && x.due.time >= todayTime)
+      .filter((x) => !x.invalid && !x.missed && !x.ended && x.due && x.due.time >= todayTime)
       .sort((a, b) => a.due!.time - b.due!.time);
 
-    return list[0]?.c || null;
+    // Prefer planned/registered competitions, then fall back to any active ones.
+    const prioritized = allActive.filter((x) => !x.unplanned);
+    return (prioritized[0] || allActive[0])?.c || null;
   }, [competitions, todayISO, todayTime]);
 
   const risk = useMemo(() => {
@@ -117,6 +119,7 @@ export default function DashboardPage() {
   });
 
   const recent = (auditQ.data || []).slice(0, 3);
+  const auditErrorText = auditQ.error instanceof Error ? auditQ.error.message : "加载失败";
 
   return (
     <div className="p-6 md:p-10 space-y-8 animate-fade-in pb-20">
@@ -240,7 +243,9 @@ export default function DashboardPage() {
           <div className="space-y-6 relative pl-2">
             <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-border-dark"></div>
 
-            {recent.length ? (
+            {auditQ.isError ? (
+              <div className="pl-6 text-amber-300 text-sm">审计日志不可用：{auditErrorText}</div>
+            ) : recent.length ? (
               recent.map((log, idx) => (
                 <div key={log.id} className="relative pl-6">
                   <div className={`absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full border-2 z-10 bg-surface-dark ${idx === 0 ? "border-emerald-400" : "border-text-secondary"}`}></div>

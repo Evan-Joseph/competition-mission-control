@@ -1,5 +1,6 @@
 import { json, errorJson, readJson } from "../_lib/http.js";
 import { requireDB, dbAll } from "../_lib/db.js";
+import { ensureCompetitionsSchema } from "../_lib/schema.js";
 
 const YMD_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -149,23 +150,34 @@ export async function onRequest(context) {
   const model = envStr(env, "GLM_MODEL", "glm-4.7-flash");
   const bochaKey = envStr(env, "BOCHA_API_KEY");
 
-  const rows = await dbAll(
-    db.prepare(
-      `SELECT
-         id,
-         name,
-         registration_deadline_at,
-         submission_deadline_at,
-         result_deadline_at,
-         included_in_plan,
-         registered,
-         status_text,
-         team_members,
-         links
-       FROM competitions
-       ORDER BY registration_deadline_at ASC, name COLLATE NOCASE ASC`
-    )
-  );
+  try {
+    await ensureCompetitionsSchema(db);
+  } catch (e) {
+    return errorJson(500, "failed to initialize schema", { detail: String(e && e.message ? e.message : e) });
+  }
+
+  let rows;
+  try {
+    rows = await dbAll(
+      db.prepare(
+        `SELECT
+           id,
+           name,
+           registration_deadline_at,
+           submission_deadline_at,
+           result_deadline_at,
+           included_in_plan,
+           registered,
+           status_text,
+           team_members,
+           links
+         FROM competitions
+         ORDER BY registration_deadline_at ASC, name COLLATE NOCASE ASC`
+      )
+    );
+  } catch (e) {
+    return errorJson(500, "failed to load competitions", { detail: String(e && e.message ? e.message : e) });
+  }
 
   let competitions = rows.map(rowToCompetition);
   if (!includeMissed) competitions = competitions.filter((c) => !isMissedRegistration(c, todayISO));

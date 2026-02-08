@@ -1,5 +1,6 @@
 import { json, errorJson } from "../../_lib/http.js";
 import { requireDB, dbAll } from "../../_lib/db.js";
+import { ensureCompetitionsSchema } from "../../_lib/schema.js";
 
 function parseJsonArray(raw, fallback = []) {
   if (!raw) return fallback;
@@ -41,27 +42,32 @@ export async function onRequest(context) {
     return errorJson(405, "Method not allowed", { allow: ["GET"] });
   }
 
-  const rows = await dbAll(
-    db.prepare(
-      `SELECT
-         id,
-         name,
-         registration_deadline_at,
-         submission_deadline_at,
-         result_deadline_at,
-         included_in_plan,
-         registered,
-         status_text,
-         team_members,
-         links,
-         created_at,
-         updated_at
-       FROM competitions
-       ORDER BY registration_deadline_at ASC, name COLLATE NOCASE ASC`
-    )
-  );
+  try {
+    await ensureCompetitionsSchema(db);
 
-  const competitions = rows.map(rowToCompetition);
-  return json({ ok: true, competitions, meta: { count: competitions.length, nowISO: new Date().toISOString() } });
+    const rows = await dbAll(
+      db.prepare(
+        `SELECT
+           id,
+           name,
+           registration_deadline_at,
+           submission_deadline_at,
+           result_deadline_at,
+           included_in_plan,
+           registered,
+           status_text,
+           team_members,
+           links,
+           created_at,
+           updated_at
+         FROM competitions
+         ORDER BY registration_deadline_at ASC, name COLLATE NOCASE ASC`
+      )
+    );
+
+    const competitions = rows.map(rowToCompetition);
+    return json({ ok: true, competitions, meta: { count: competitions.length, nowISO: new Date().toISOString() } });
+  } catch (e) {
+    return errorJson(500, "failed to load competitions", { detail: String(e && e.message ? e.message : e) });
+  }
 }
-
