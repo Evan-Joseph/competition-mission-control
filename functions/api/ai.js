@@ -259,15 +259,23 @@ export async function onRequest(context) {
   ];
 
   let resp;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
   try {
     resp = await fetch(baseUrl, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({ model, messages, temperature: 0.2 }),
+      signal: controller.signal,
     });
   } catch (e) {
+    clearTimeout(timeoutId);
+    if (e && e.name === "AbortError") {
+      return errorJson(504, "AI request timed out (30s)");
+    }
     return errorJson(502, "AI request failed", { detail: String(e && e.message ? e.message : e) });
   }
+  clearTimeout(timeoutId);
 
   const text = await resp.text();
   let data;

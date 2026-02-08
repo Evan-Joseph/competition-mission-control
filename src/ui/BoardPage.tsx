@@ -1045,6 +1045,8 @@ function AIPanel(props: {
   const [messages, setMessages] = useState<{ role: "ai" | "user"; content: string; actions?: AIAction[] }[]>([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [applyingIds, setApplyingIds] = useState<Set<string>>(new Set());
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
 
   if (!props.open) return null;
 
@@ -1129,27 +1131,54 @@ function AIPanel(props: {
                   </div>
                   {m.role === "ai" && m.actions && m.actions.length ? (
                     <div className="space-y-2 w-full">
-                      {m.actions.map((a) => (
-                        <div key={a.id} className="bg-white dark:bg-[#111822] border border-gray-200 dark:border-border-dark rounded-lg p-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{a.title}</p>
-                              {a.reason ? <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.reason}</p> : null}
-                              <pre className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 overflow-x-auto">{JSON.stringify(a.patch, null, 2)}</pre>
+                      {m.actions.map((a) => {
+                        const isApplying = applyingIds.has(a.id);
+                        const isApplied = appliedIds.has(a.id);
+                        return (
+                          <div key={a.id} className={["bg-white dark:bg-[#111822] border rounded-lg p-3 transition-all", isApplied ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10" : "border-gray-200 dark:border-border-dark"].join(" ")}>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{a.title}</p>
+                                {a.reason ? <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{a.reason}</p> : null}
+                                <pre className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 overflow-x-auto">{JSON.stringify(a.patch, null, 2)}</pre>
+                              </div>
+                              {isApplied ? (
+                                <span className="shrink-0 px-2 py-1 text-xs font-semibold rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[14px]">check</span>
+                                  已应用
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="shrink-0 px-2 py-1 text-xs font-semibold rounded bg-primary text-white hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1"
+                                  disabled={isApplying}
+                                  onClick={async () => {
+                                    if (!confirm(`确认执行动作：${a.title}？`)) return;
+                                    setApplyingIds((s) => new Set(s).add(a.id));
+                                    try {
+                                      await props.onApplyAction(a);
+                                      setAppliedIds((s) => new Set(s).add(a.id));
+                                    } catch (e) {
+                                      alert(`应用失败: ${e && typeof e === "object" && "message" in e ? (e as any).message : e}`);
+                                    } finally {
+                                      setApplyingIds((s) => { const next = new Set(s); next.delete(a.id); return next; });
+                                    }
+                                  }}
+                                >
+                                  {isApplying ? (
+                                    <>
+                                      <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                                      应用中...
+                                    </>
+                                  ) : (
+                                    "应用"
+                                  )}
+                                </button>
+                              )}
                             </div>
-                            <button
-                              type="button"
-                              className="shrink-0 px-2 py-1 text-xs font-semibold rounded bg-primary text-white hover:bg-primary-dark"
-                              onClick={async () => {
-                                if (!confirm(`确认执行动作：${a.title}？`)) return;
-                                await props.onApplyAction(a);
-                              }}
-                            >
-                              应用
-                            </button>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : null}
                 </div>
