@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>竞赛规划看板 - 总览工作台</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2beead",
+                        "primary-content": "#111816",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#111816", // Deep charcoal/black
+                        "surface-dark": "#1c2723", // Slightly lighter for cards
+                        "surface-darker": "#16201c", // Darker for sidebars
+                        "border-dark": "#283933", // Subtle borders
+                        "text-secondary": "#9db9b0",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans SC", "sans-serif"],
+                        "body": ["Plus Jakarta Sans", "Noto Sans SC", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;
+        }
+        /* Custom scrollbar for dark mode feeling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111816; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #283933; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b544b; 
+        }
+        .glass-panel {
+            background: rgba(28, 39, 35, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white antialiased overflow-hidden">
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Side Navigation -->
+<aside class="flex w-[280px] flex-col border-r border-border-dark bg-surface-darker hidden md:flex shrink-0">
+<div class="flex flex-col h-full p-4">
+<!-- Header / Team Info -->
+<div class="flex items-center gap-3 px-2 py-4 mb-6">
+<div class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-emerald-600 text-primary-content">
+<span class="material-symbols-outlined text-[20px] font-bold">bolt</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-bold leading-tight tracking-wide">极客战队</h1>
+<p class="text-text-secondary text-xs font-normal">竞赛规划中心 v3</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-2 flex-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-border-dark text-white shadow-sm transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+<p class="text-sm font-semibold">仪表盘</p>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary hover:bg-surface-dark hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">checklist</span>
+<p class="text-sm font-medium">任务列表</p>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary hover:bg-surface-dark hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">calendar_month</span>
+<p class="text-sm font-medium">竞赛日历</p>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary hover:bg-surface-dark hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">timeline</span>
+<p class="text-sm font-medium">时间轴</p>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary hover:bg-surface-dark hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">history</span>
+<p class="text-sm font-medium">操作日志</p>
+</a>
+<div class="my-2 border-t border-border-dark"></div>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary hover:bg-surface-dark hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">settings</span>
+<p class="text-sm font-medium">设置</p>
+</a>
+</nav>
+<!-- Create Button -->
+<button class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl h-12 bg-primary hover:bg-[#25dba0] active:scale-95 transition-all text-primary-content text-sm font-bold shadow-lg shadow-primary/20 mt-auto mb-6">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>新建任务</span>
+</button>
+<!-- User Profile -->
+<div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-surface-dark cursor-pointer transition-colors">
+<div class="h-8 w-8 rounded-full bg-cover bg-center ring-2 ring-border-dark" data-alt="User profile picture showing a smiling person" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA702eUvxbz0KL2_eJXRiaPenqZ_9FdKCfqM2HSDHR6bDiAjSKJqMnNrwCDatliuUYBqDGnncqUhTPNuplsZJEuuBtKzjNm8fxpgZPo6EQKnSTJdCeZ7L-2UHUqMplv12esA2hQ6gmI38oKmgJiEEeym5CcAZxr8DCdL_s346fEBYjauoJjw0vSNFOCnyjieODArnn399S2rmzPBIdwZEd2Qp8JB7Laa6AqiSpIOF4NFH9q0PYKmf5TFXfa94xdo2R06bBiOZfL1CI')"></div>
+<div class="flex flex-col">
+<p class="text-white text-sm font-medium">Alex Chen</p>
+<p class="text-text-secondary text-xs">队长</p>
+</div>
+<span class="material-symbols-outlined text-text-secondary ml-auto text-[18px]">more_vert</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full relative overflow-hidden bg-background-dark">
+<!-- Top Command Bar -->
+<header class="h-20 w-full flex items-center justify-between px-8 border-b border-border-dark bg-background-dark/80 backdrop-blur-md z-10">
+<div class="flex items-center gap-4 w-full max-w-2xl">
+<!-- Mobile Toggle -->
+<button class="md:hidden text-white mr-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<!-- Search Input -->
+<div class="relative flex-1 group">
+<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-text-secondary group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full bg-surface-darker border border-border-dark text-white text-sm rounded-xl py-2.5 pl-11 pr-24 focus:ring-2 focus:ring-primary/50 focus:border-primary block transition-all placeholder:text-gray-600" placeholder="搜索命令, 任务或竞赛..." type="text"/>
+<div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+<kbd class="hidden sm:inline-block px-2 py-0.5 text-xs font-medium text-gray-500 bg-[#23302b] rounded border border-gray-700">Cmd K</kbd>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 shrink-0">
+<button class="relative p-2 text-text-secondary hover:text-white hover:bg-surface-dark rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border border-background-dark"></span>
+</button>
+<button class="p-2 text-text-secondary hover:text-white hover:bg-surface-dark rounded-lg transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 scroll-smooth">
+<!-- Welcome Section -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 animate-fade-in-up">
+<div>
+<p class="text-text-secondary text-sm font-medium mb-1">2023年 10月 24日, 星期二</p>
+<h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">早安, 队长 👋</h2>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-sm text-text-secondary">本周效率</span>
+<div class="flex items-center gap-1 text-primary bg-primary/10 px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span class="text-sm font-bold">+12%</span>
+</div>
+</div>
+</div>
+<!-- Section 1: Today's Focus (Grid Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Left Column: Focus Card -->
+<div class="lg:col-span-2 flex flex-col gap-6">
+<div class="rounded-2xl border border-border-dark bg-surface-dark p-6 shadow-xl relative overflow-hidden group">
+<!-- Decorative background glow -->
+<div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700"></div>
+<div class="flex items-center justify-between mb-6 relative z-10">
+<div class="flex items-center gap-3">
+<div class="bg-primary/20 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">center_focus_strong</span>
+</div>
+<h3 class="text-xl font-bold text-white">今日焦点</h3>
+</div>
+<span class="bg-surface-darker border border-border-dark text-white text-xs px-3 py-1 rounded-full font-medium">截止时间: 下午 5:00</span>
+</div>
+<div class="flex flex-col gap-4 relative z-10">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-surface-darker border border-border-dark hover:border-primary/30 transition-colors cursor-pointer">
+<div class="flex items-start gap-4">
+<div class="mt-1">
+<div class="h-6 w-6 rounded-full border-2 border-text-secondary flex items-center justify-center hover:border-primary hover:bg-primary/20 transition-all cursor-pointer"></div>
+</div>
+<div>
+<h4 class="text-lg font-semibold text-white group-hover:text-primary transition-colors">提交 Kaggle 方案初稿</h4>
+<p class="text-text-secondary text-sm mt-1">关联项目: <span class="text-primary hover:underline">房价预测算法优化</span></p>
+</div>
+</div>
+<div class="flex items-center gap-4 pl-10 md:pl-0">
+<div class="flex -space-x-2">
+<div class="h-8 w-8 rounded-full ring-2 ring-surface-darker bg-cover bg-center" data-alt="Team member portrait" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDuuITKLpm14gGavviCkI8CUH2pvCM1e25DpGm94fvNkc5DwLPAg6rWGwjRAbhhOSp9mW9gyBN_CB-gn4YOpVlj5oVwVC9mKL4NWeXNs8LXyAFM4TZHZLABVp4KMaszeY01XnICPFNi4Ac9reIsZLFwh8yWyOnKhpxqWfX40qqXG_pcnSldVib_pq13O390yXa7m5P-rT4VJMTijLuHyAmh6kzuXBPV0IXCKIsJG1zd9NHwFRsoatc2KJba-QE0MgVNr4BzIP__Ze4')"></div>
+<div class="h-8 w-8 rounded-full ring-2 ring-surface-darker bg-cover bg-center" data-alt="Team member portrait" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAR5W778sQraru2YE4_VUMNucO4NCzIt5wjqEQq0Tp4XofreAB0rhifKm6yVUGb36GRQc12eHrzuWD5jYAqoBQqrmWt173nckQf_sVi4ttIeWEQAtDgZDgikYttkHZYvTLjVKs6FcGGlcxquL1UHChQNOzY7ZTsSSpo5BfUOOmEKhbbl1wO5DnKuHUNtDvq5p5vQuIZo6Q7YuFcq7FiNR2YGAiH3z8QnjZqi_vvS2nnUL26ZhQTR07vWirAC9eV_SWxuGks682PJxg')"></div>
+</div>
+<div class="w-24 bg-[#23302b] rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 80%"></div>
+</div>
+<span class="text-xs font-bold text-primary">80%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Focus Queue (Split in 2) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Queue List -->
+<div class="rounded-2xl border border-border-dark bg-surface-dark p-6 shadow-sm flex flex-col h-full">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-text-secondary text-[20px]">queue_music</span>
+                                        待办队列
+                                    </h3>
+<button class="text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<div class="flex flex-col gap-3 flex-1">
+<!-- Draggable Item 1 -->
+<div class="group flex items-center gap-3 p-3 rounded-xl bg-surface-darker border border-transparent hover:border-border-dark transition-all cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined text-text-secondary text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span>
+<div class="flex-1">
+<p class="text-sm font-medium text-white">复习数学建模文献</p>
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">资料整理</span>
+</div>
+<span class="material-symbols-outlined text-text-secondary text-[18px] hover:text-white cursor-pointer">more_horiz</span>
+</div>
+<!-- Draggable Item 2 -->
+<div class="group flex items-center gap-3 p-3 rounded-xl bg-surface-darker border border-transparent hover:border-border-dark transition-all cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined text-text-secondary text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span>
+<div class="flex-1">
+<p class="text-sm font-medium text-white">机器人设计: 订购零件</p>
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">后勤</span>
+</div>
+<span class="material-symbols-outlined text-text-secondary text-[18px] hover:text-white cursor-pointer">more_horiz</span>
+</div>
+<!-- Draggable Item 3 -->
+<div class="group flex items-center gap-3 p-3 rounded-xl bg-surface-darker border border-transparent hover:border-border-dark transition-all cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined text-text-secondary text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span>
+<div class="flex-1">
+<p class="text-sm font-medium text-white">更新团队博客</p>
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">宣发</span>
+</div>
+<span class="material-symbols-outlined text-text-secondary text-[18px] hover:text-white cursor-pointer">more_horiz</span>
+</div>
+</div>
+</div>
+<!-- Weekly Risk Widget -->
+<div class="rounded-2xl border border-border-dark bg-gradient-to-br from-surface-dark to-[#1d1515] p-6 shadow-sm flex flex-col relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-[120px] text-red-500">warning</span>
+</div>
+<div class="flex items-center justify-between mb-4 relative z-10">
+<h3 class="text-lg font-bold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-red-400 text-[20px]">warning_amber</span>
+                                        本周风险
+                                    </h3>
+</div>
+<div class="flex-1 flex flex-col justify-center relative z-10">
+<div class="flex items-end gap-2 mb-2">
+<span class="text-5xl font-black text-white tracking-tighter">3</span>
+<span class="text-lg font-medium text-text-secondary mb-1.5">天剩余</span>
+</div>
+<p class="text-xl font-bold text-white mb-1">ACM ICPC 报名截止</p>
+<p class="text-sm text-text-secondary">请确保所有队员信息已填入官网系统。</p>
+</div>
+<button class="mt-4 w-full py-2.5 rounded-lg bg-red-500/10 text-red-400 text-sm font-bold border border-red-500/20 hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 relative z-10">
+                                    立即处理 <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Recent Activity & Calendar Mini -->
+<div class="flex flex-col gap-6">
+<!-- Mini Calendar Widget -->
+<div class="rounded-2xl border border-border-dark bg-surface-dark p-6">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-sm font-bold text-white uppercase tracking-wider text-text-secondary">十月 2023</h3>
+<div class="flex gap-2">
+<button class="p-1 rounded hover:bg-surface-darker text-text-secondary"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<button class="p-1 rounded hover:bg-surface-darker text-text-secondary"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-2 text-center text-sm mb-2 text-text-secondary font-medium">
+<span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+</div>
+<div class="grid grid-cols-7 gap-2 text-center text-sm font-medium text-white">
+<span class="text-gray-600">25</span><span class="text-gray-600">26</span><span class="text-gray-600">27</span><span class="text-gray-600">28</span><span class="text-gray-600">29</span><span class="text-gray-600">30</span><span class="text-gray-600">1</span>
+<span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+<span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+<span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span>
+<span>23</span><span class="bg-primary text-primary-content h-8 w-8 flex items-center justify-center rounded-full mx-auto shadow-lg shadow-primary/30 font-bold">24</span><span class="relative">25<span class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-red-500 rounded-full"></span></span><span>26</span><span>27</span><span>28</span><span>29</span>
+</div>
+</div>
+<!-- Activity Feed -->
+<div class="rounded-2xl border border-border-dark bg-surface-dark p-6 flex-1 flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-white">最近动态</h3>
+<span class="material-symbols-outlined text-text-secondary cursor-pointer hover:text-white">more_horiz</span>
+</div>
+<div class="relative pl-2 flex-1 space-y-8">
+<!-- Vertical Line -->
+<div class="absolute left-[7px] top-2 bottom-2 w-[2px] bg-surface-darker"></div>
+<!-- Activity Item 1 -->
+<div class="relative pl-6">
+<div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-surface-dark border-2 border-primary z-10"></div>
+<div class="flex flex-col gap-1">
+<p class="text-sm text-white"><span class="font-bold text-primary">Alex</span> 完成了 <span class="text-white font-medium">数据清洗脚本</span></p>
+<span class="text-xs text-text-secondary">2 分钟前</span>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="relative pl-6">
+<div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-surface-dark border-2 border-blue-500 z-10"></div>
+<div class="flex flex-col gap-1">
+<p class="text-sm text-white"><span class="font-bold text-blue-400">Sarah</span> 上传了新文件</p>
+<div class="flex items-center gap-2 mt-1 p-2 rounded-lg bg-surface-darker border border-border-dark w-fit">
+<span class="material-symbols-outlined text-blue-400 text-[18px]">description</span>
+<span class="text-xs text-white">Main_Model_v2.py</span>
+</div>
+<span class="text-xs text-text-secondary mt-1">1 小时前</span>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="relative pl-6">
+<div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-surface-dark border-2 border-purple-500 z-10"></div>
+<div class="flex flex-col gap-1">
+<p class="text-sm text-white"><span class="font-bold text-purple-400">系统</span> 自动备份数据库</p>
+<span class="text-xs text-text-secondary">3 小时前</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Stats Row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-8">
+<div class="bg-surface-darker border border-border-dark p-4 rounded-xl flex items-center gap-3">
+<div class="p-2 rounded-lg bg-green-500/10 text-green-500">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div>
+<p class="text-xs text-text-secondary">已完成任务</p>
+<p class="text-lg font-bold text-white">12</p>
+</div>
+</div>
+<div class="bg-surface-darker border border-border-dark p-4 rounded-xl flex items-center gap-3">
+<div class="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+<span class="material-symbols-outlined">hourglass_top</span>
+</div>
+<div>
+<p class="text-xs text-text-secondary">进行中</p>
+<p class="text-lg font-bold text-white">5</p>
+</div>
+</div>
+<div class="bg-surface-darker border border-border-dark p-4 rounded-xl flex items-center gap-3">
+<div class="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+<span class="material-symbols-outlined">flag</span>
+</div>
+<div>
+<p class="text-xs text-text-secondary">即将截止</p>
+<p class="text-lg font-bold text-white">2</p>
+</div>
+</div>
+<div class="bg-surface-darker border border-border-dark p-4 rounded-xl flex items-center gap-3">
+<div class="p-2 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">group</span>
+</div>
+<div>
+<p class="text-xs text-text-secondary">在线成员</p>
+<p class="text-lg font-bold text-white">4/6</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

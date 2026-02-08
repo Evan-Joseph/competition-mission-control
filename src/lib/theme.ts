@@ -5,9 +5,10 @@ export type ThemePref = "system" | "light" | "dark";
 const STORAGE_THEME = "theme";
 
 export function readThemePref(): ThemePref {
-  const v = String(getString(STORAGE_THEME, "system") || "system");
+  // V3 is dark-first: treat missing pref as "dark" to avoid a light flash.
+  const v = String(getString(STORAGE_THEME, "dark") || "dark");
   if (v === "light" || v === "dark" || v === "system") return v;
-  return "system";
+  return "dark";
 }
 
 function systemPrefersDark(): boolean {
@@ -40,4 +41,3 @@ export function toggleThemePref(cur: ThemePref): ThemePref {
   if (cur === "system") return resolvedIsDark(cur) ? "light" : "dark";
   return cur === "dark" ? "light" : "dark";
 }
-

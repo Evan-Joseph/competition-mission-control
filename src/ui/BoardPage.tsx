@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { aiAsk, listCompetitions, patchCompetition } from "../lib/api";
-import { applyOfflinePatches, upsertOfflinePatch } from "../lib/offline";
-import type { AIAction, AIReply, Competition, CompetitionEvent, CompetitionEventType, CompetitionPatch } from "../lib/types";
-import { addDays, endOfMonth, endOfWeek, formatCNDate, formatYMD, isYMD, parseYMD, startOfWeek, todayYMD, type YMD } from "../lib/date";
+import type { AIAction, AIReply, Competition, CompetitionEvent, CompetitionPatch } from "../lib/types";
+import { addDays, endOfMonth, formatCNDate, formatYMD, isYMD, parseYMD, startOfWeek, todayYMD, type YMD } from "../lib/date";
+import { buildCompetitionEvents, eventTypeLabel, eventTypeOrder, groupKeyForDate, groupTitle, isMissedRegistration } from "../domain/competitionEvents";
 import ThemeToggle from "./ThemeToggle";
 
 const VIEW_PARAM = "view";
@@ -16,77 +16,8 @@ type View = "list" | "calendar";
 type CalendarMode = "month" | "week";
 type BoardFilters = { onlyPlanned: boolean; onlyRegistered: boolean; showResult: boolean; showMissed: boolean };
 
-type LoadResult = { competitions: Competition[]; source: "api" | "seed" };
-
-async function loadSeedCompetitions(): Promise<Competition[]> {
-  const r = await fetch("/data/competitions.seed.json", { headers: { accept: "application/json" } });
-  if (!r.ok) return [];
-  const j = await r.json();
-  if (!Array.isArray(j)) return [];
-  // Trust seed shape; runtime coercion happens elsewhere.
-  return j as Competition[];
-}
-
-async function loadCompetitionsWithFallback(): Promise<LoadResult> {
-  try {
-    const competitions = await listCompetitions();
-    return { competitions, source: "api" };
-  } catch {
-    const competitions = await loadSeedCompetitions();
-    return { competitions, source: "seed" };
-  }
-}
-
 function localISODate(d: Date): YMD {
   return formatYMD(d);
-}
-
-function isMissedRegistration(c: Competition, todayISO: YMD): boolean {
-  return c.registration_deadline_at < todayISO && !c.registered;
-}
-
-function eventTypeLabel(t: CompetitionEventType): string {
-  if (t === "registration_deadline") return "报名截止";
-  if (t === "submission_deadline") return "提交截止";
-  return "结果公布";
-}
-
-function eventTypeOrder(t: CompetitionEventType): number {
-  if (t === "registration_deadline") return 0;
-  if (t === "submission_deadline") return 1;
-  return 2;
-}
-
-function buildEvents(competitions: Competition[], opts: { showResult: boolean }): CompetitionEvent[] {
-  const out: CompetitionEvent[] = [];
-  for (const c of competitions) {
-    out.push({ event_id: `${c.id}:registration_deadline`, competition_id: c.id, type: "registration_deadline", date: c.registration_deadline_at });
-    if (c.submission_deadline_at) out.push({ event_id: `${c.id}:submission_deadline`, competition_id: c.id, type: "submission_deadline", date: c.submission_deadline_at });
-    if (opts.showResult && c.result_deadline_at) out.push({ event_id: `${c.id}:result_deadline`, competition_id: c.id, type: "result_deadline", date: c.result_deadline_at });
-  }
-  return out;
-}
-
-function groupKeyForDate(dateISO: YMD, todayISO: YMD): "overdue" | "today" | "this_week" | "this_month" | "later" {
-  if (dateISO < todayISO) return "overdue";
-  if (dateISO === todayISO) return "today";
-
-  const today = parseYMD(todayISO) || new Date();
-  const weekEnd = localISODate(endOfWeek(today));
-  if (dateISO <= weekEnd) return "this_week";
-
-  const monthEnd = localISODate(endOfMonth(today));
-  if (dateISO <= monthEnd) return "this_month";
-
-  return "later";
-}
-
-function groupTitle(key: ReturnType<typeof groupKeyForDate>): string {
-  if (key === "overdue") return "已逾期";
-  if (key === "today") return "今天";
-  if (key === "this_week") return "本周";
-  if (key === "this_month") return "本月";
-  return "更晚";
 }
 
 function clampText(s: string, max = 160): string {
@@ -1301,11 +1232,10 @@ export default function BoardPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const competitionsQ = useQuery({ queryKey: ["competitions"], queryFn: loadCompetitionsWithFallback, refetchInterval: 60_000 });
+  const competitionsQ = useQuery({ queryKey: ["competitions"], queryFn: listCompetitions, refetchInterval: 60_000 });
 
-  const competitionsRaw = competitionsQ.data?.competitions || [];
-  const competitionsSource = competitionsQ.data?.source || "seed";
-  const competitions = useMemo(() => (competitionsSource === "seed" ? applyOfflinePatches(competitionsRaw) : competitionsRaw), [competitionsRaw, competitionsSource]);
+  const competitions = competitionsQ.data || [];
+  const competitionsSource = competitionsQ.isError ? "unavailable" : "api";
 
   const competitionsById = useMemo(() => new Map(competitions.map((c) => [c.id, c] as const)), [competitions]);
 
@@ -1323,7 +1253,7 @@ export default function BoardPage() {
   }, [competitions, onlyPlanned, onlyRegistered, query, showMissed, todayISO]);
 
   const events = useMemo(() => {
-    const list = buildEvents(filteredCompetitions, { showResult });
+    const list = buildCompetitionEvents(filteredCompetitions, { showResult });
     return list.sort((a, b) => (a.date === b.date ? eventTypeOrder(a.type) - eventTypeOrder(b.type) : a.date.localeCompare(b.date)));
   }, [filteredCompetitions, showResult]);
 
@@ -1355,20 +1285,11 @@ export default function BoardPage() {
   const closeDrawer = () => setParam(OPEN_PARAM, null);
 
   const saveCompetition = async (id: string, patch: CompetitionPatch) => {
-    try {
-      const updated = await patchCompetition(id, patch);
-      queryClient.setQueryData(["competitions"], (cur: LoadResult | undefined) => {
-        if (!cur) return cur;
-        return { ...cur, competitions: cur.competitions.map((c) => (c.id === id ? updated : c)) };
-      });
-    } catch (e) {
-      // Offline write-through.
-      upsertOfflinePatch(id, patch);
-      queryClient.setQueryData(["competitions"], (cur: LoadResult | undefined) => {
-        if (!cur) return cur;
-        return { ...cur, competitions: cur.competitions.map((c) => (c.id === id ? { ...c, ...patch } : c)) };
-      });
-    }
+    const updated = await patchCompetition(id, patch);
+    queryClient.setQueryData(["competitions"], (cur: Competition[] | undefined) => {
+      if (!cur) return cur;
+      return cur.map((c) => (c.id === id ? updated : c));
+    });
   };
 
   const applyAiAction = async (a: AIAction) => {

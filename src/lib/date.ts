@@ -8,7 +8,10 @@ export function isYMD(s: string): boolean {
 
 export function parseYMD(s?: string | null): Date | null {
   if (!s) return null;
-  const m = YMD_RE.exec(String(s).trim());
+  const raw = String(s).trim();
+  // Accept ISO datetime strings by extracting YYYY-MM-DD prefix.
+  const base = raw.includes("T") ? raw.slice(0, 10) : raw;
+  const m = YMD_RE.exec(base);
   if (!m) return null;
   const y = Number(m[1]);
   const mm = Number(m[2]);

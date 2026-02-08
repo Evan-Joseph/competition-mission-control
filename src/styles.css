@@ -3,17 +3,34 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
-  --scrollbar-track: #e2e8f0;
-  --scrollbar-thumb: #94a3b8;
-  --scrollbar-thumb-hover: #64748b;
+  /* "Light" theme is actually a dim-dark variant (dark-first, low stress). */
+  color-scheme: dark;
+  --v3-bg: 20 29 26; /* #141d1a */
+  --v3-panel: 26 38 33; /* #1a2621 */
+  --v3-surface: 31 45 39; /* #1f2d27 */
+  --v3-surface-alt: 24 35 30; /* #18231e */
+  --v3-border: 47 69 62; /* #2f453e */
+  --v3-muted: 184 204 197; /* #b8ccc5 */
+  --v3-muted2: 146 170 163; /* #92aaa3 */
+  --v3-surface-darker: 20 29 26;
+  --scrollbar-track: #141d1a;
+  --scrollbar-thumb: #2f453e;
+  --scrollbar-thumb-hover: #3b544b;
 }
 
 html.dark {
   color-scheme: dark;
-  --scrollbar-track: #0f172a;
-  --scrollbar-thumb: #334155;
-  --scrollbar-thumb-hover: #475569;
+  --v3-bg: 17 24 22; /* #111816 */
+  --v3-panel: 22 32 28; /* #16201c */
+  --v3-surface: 28 39 35; /* #1c2723 */
+  --v3-surface-alt: 20 29 25; /* #141d19 */
+  --v3-border: 40 57 51; /* #283933 */
+  --v3-muted: 157 185 176; /* #9db9b0 */
+  --v3-muted2: 92 112 102; /* #5c7066 */
+  --v3-surface-darker: 17 24 22; /* #111816 */
+  --scrollbar-track: #111816;
+  --scrollbar-thumb: #283933;
+  --scrollbar-thumb-hover: #3b544b;
 }
 
 html,
@@ -26,9 +43,10 @@ body {
   height: 100dvh;
 }
 
-/* Global font choices (Inter + Noto Sans SC) */
+/* Global font choices (V3: Plus Jakarta Sans + Noto Sans SC) */
 body {
-  font-family: "Inter", "Noto Sans SC", sans-serif;
+  font-family: "Plus Jakarta Sans", "Noto Sans SC", sans-serif;
+  background-color: rgb(var(--v3-bg));
 }
 
 h1,
@@ -38,7 +56,7 @@ h4,
 h5,
 h6,
 .font-display {
-  font-family: "Inter", "Noto Sans SC", sans-serif;
+  font-family: "Plus Jakarta Sans", "Noto Sans SC", sans-serif;
 }
 
 /* Scrollbars (close to prototype) */
@@ -63,4 +81,14 @@ h6,
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
+}
+
+/* Utility (prototype parity) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

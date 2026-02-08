@@ -1,5 +1,6 @@
 name = "competition-mission-control"
 compatibility_date = "2026-02-07"
+pages_build_output_dir = "dist"
 
 # Local development notes:
 # - You can run `wrangler pages dev site ... --d1 DB=competition-mission-control`
@@ -14,5 +15,4 @@ GLM_MODEL = "glm-4.7-flash"
 [[d1_databases]]
 binding = "DB"
 database_name = "competition-mission-control"
-database_id = "00000000-0000-0000-0000-000000000000"
-
+database_id = "29f4903a-6dd7-42e1-bbd0-f726d3b99cc5"

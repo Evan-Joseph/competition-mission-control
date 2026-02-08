@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 import type { ThemePref } from "../lib/theme";
 import { applyThemePref, readThemePref, setThemePref, toggleThemePref } from "../lib/theme";
 
@@ -34,21 +35,22 @@ export default function ThemeToggle() {
     };
   }, [pref]);
 
-  const icon = isDarkResolved ? "dark_mode" : "light_mode";
   const title = isDarkResolved ? "切换到浅色" : "切换到深色";
+  const Icon = isDarkResolved ? Sun : Moon;
 
   return (
     <button
-      className="h-9 w-9 grid place-items-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
+      className="h-10 w-10 grid place-items-center rounded-xl bg-surface-dark border border-border-dark text-text-secondary hover:text-white hover:border-primary transition-colors"
       type="button"
       title={title}
+      aria-label={title}
       onClick={() => {
         const next = toggleThemePref(pref);
         setPref(next);
         setThemePref(next);
       }}
     >
-      <span className="material-symbols-outlined text-[18px]">{icon}</span>
+      <Icon size={18} />
     </button>
   );
 }

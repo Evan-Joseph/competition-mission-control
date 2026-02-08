@@ -39,6 +39,20 @@ export type CompetitionEvent = {
   date: string; // YYYY-MM-DD
 };
 
+export type AuditAction = "create" | "update" | "delete" | "upload" | "comment";
+
+export type AuditLogEntry = {
+  id: string;
+  iso: string; // ISO timestamp (UTC, from server)
+  timestamp?: string; // Optional pre-formatted local timestamp (offline fallback)
+  user: string;
+  action: AuditAction;
+  target_type: "competition" | "system";
+  target_id?: string | null;
+  target: string;
+  details: string;
+};
+
 export type AIAction = {
   id: string;
   type: "update_competition";
@@ -51,4 +65,26 @@ export type AIAction = {
 export type AIReply = {
   content: string;
   actions: AIAction[];
+};
+
+export type WhiteboardItemType = "note" | "image" | "text";
+
+export type WhiteboardItem = {
+  id: string;
+  type: WhiteboardItemType;
+  x: number;
+  y: number;
+  content: string;
+  color?: string;
+  rotation?: number;
+  author?: string;
+  updated_at?: number;
+  deleted?: boolean;
+};
+
+export type WhiteboardDoc = {
+  competition_id: string;
+  items: WhiteboardItem[];
+  version: number;
+  updated_at: string | null;
 };

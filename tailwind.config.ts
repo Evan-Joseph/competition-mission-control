@@ -10,24 +10,59 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#196ee6",
-        "primary-dark": "#155cc0",
-        "background-light": "#f6f8f8",
-        "background-dark": "#111821",
-        "surface-dark": "#1e293b",
-        "surface-darker": "#111827",
-        "border-dark": "#2a3b55",
-        "text-secondary": "#93a9c8",
+        // V3 tokens (Stitch prototype baseline)
+        primary: "#2beead",
+        "primary-dark": "#25dcb0",
+        // Light token kept for legacy `bg-background-light dark:bg-background-dark` usage.
+        "background-light": "#f6f8f7",
+
+        // Theme-aware tokens (use CSS vars to make theme switching real).
+        "background-dark": "rgb(var(--v3-bg) / <alpha-value>)",
+        "panel-dark": "rgb(var(--v3-panel) / <alpha-value>)",
+        "surface-dark": "rgb(var(--v3-surface) / <alpha-value>)",
+        "surface-dark-alt": "rgb(var(--v3-surface-alt) / <alpha-value>)",
+        "border-dark": "rgb(var(--v3-border) / <alpha-value>)",
+        "text-secondary": "rgb(var(--v3-muted) / <alpha-value>)",
+        "text-tertiary": "rgb(var(--v3-muted2) / <alpha-value>)",
+
+        // Legacy token kept for backwards compatibility while V2 -> V3 refactor is in progress.
+        "surface-darker": "rgb(var(--v3-surface-darker) / <alpha-value>)",
         danger: "#ef4444",
         warning: "#f59e0b",
         success: "#10b981",
+        info: "#3b82f6",
       },
       fontFamily: {
-        display: ["Inter", "Noto Sans SC", "sans-serif"],
-        body: ["Inter", "Noto Sans SC", "sans-serif"],
+        display: ["Plus Jakarta Sans", "Noto Sans SC", "sans-serif"],
+        body: ["Plus Jakarta Sans", "Noto Sans SC", "sans-serif"],
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "fade-in": "fadeIn 0.4s ease-out forwards",
+        "slide-in-right": "slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "slide-in-left": "slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+      },
+      keyframes: {
+        fadeIn: {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        slideInRight: {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        slideInLeft: {
+          from: { transform: "translateX(-100%)" },
+          to: { transform: "translateX(0)" },
+        },
+      },
+      borderRadius: {
+        lg: "1rem",
+        xl: "1.5rem",
+      },
+      boxShadow: {
+        "glow-primary": "0 0 20px rgba(43, 238, 173, 0.18)",
+        "glow-primary-sm": "0 0 12px rgba(43, 238, 173, 0.14)",
       },
     },
   },

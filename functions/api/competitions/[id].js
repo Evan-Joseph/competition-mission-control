@@ -7,6 +7,30 @@ function isYMD(s) {
   return YMD_RE.test(String(s || "").trim());
 }
 
+function isValidYMD(s) {
+  const m = YMD_RE.exec(String(s || "").trim());
+  if (!m) return false;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return false;
+  if (mo < 1 || mo > 12) return false;
+  const daysInMonth = new Date(y, mo, 0).getDate();
+  if (d < 1 || d > daysInMonth) return false;
+  return true;
+}
+
+function ymdTime(s) {
+  const m = YMD_RE.exec(String(s || "").trim());
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  const dt = new Date(y, mo - 1, d);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt.getTime();
+}
+
 function normalizeYMD(v, { allowNull }) {
   if (v === undefined) return undefined;
   if (v === null) return allowNull ? null : undefined;
@@ -88,6 +112,52 @@ function rowToCompetition(r) {
       })
       .filter((x) => x && x.url),
   };
+}
+
+function normalizeLinksForCompare(v) {
+  const arr = normalizeLinks(v);
+  // Stable ordering for diff: url asc then title.
+  return arr.slice().sort((a, b) => String(a.url || "").localeCompare(String(b.url || "")) || String(a.title || "").localeCompare(String(b.title || "")));
+}
+
+function normalizeTeamForCompare(v) {
+  const arr = normalizeTeamMembers(v) || [];
+  return arr.slice();
+}
+
+function summarizeChangedKeys(keys) {
+  if (!keys.length) return "无变更";
+  const map = {
+    registration_deadline_at: "报名截止",
+    submission_deadline_at: "提交截止",
+    result_deadline_at: "结果公布",
+    included_in_plan: "纳入规划",
+    registered: "已报名",
+    status_text: "状态备注",
+    team_members: "队员名单",
+    links: "相关链接",
+  };
+  return "更新了：" + keys.map((k) => map[k] || k).join("、");
+}
+
+function diffCompetition(current, next) {
+  const changed = [];
+  if (String(current.registration_deadline_at || "") !== String(next.registration_deadline_at || "")) changed.push("registration_deadline_at");
+  if (String(current.submission_deadline_at || "") !== String(next.submission_deadline_at || "")) changed.push("submission_deadline_at");
+  if (String(current.result_deadline_at || "") !== String(next.result_deadline_at || "")) changed.push("result_deadline_at");
+  if (Boolean(current.included_in_plan) !== Boolean(next.included_in_plan)) changed.push("included_in_plan");
+  if (Boolean(current.registered) !== Boolean(next.registered)) changed.push("registered");
+  if (String(current.status_text || "") !== String(next.status_text || "")) changed.push("status_text");
+
+  const curTeam = normalizeTeamForCompare(parseJsonArray(current.team_members, []));
+  const nextTeam = normalizeTeamForCompare(next.team_members);
+  if (JSON.stringify(curTeam) !== JSON.stringify(nextTeam)) changed.push("team_members");
+
+  const curLinks = normalizeLinksForCompare(parseJsonArray(current.links, []));
+  const nextLinks = normalizeLinksForCompare(next.links);
+  if (JSON.stringify(curLinks) !== JSON.stringify(nextLinks)) changed.push("links");
+
+  return changed;
 }
 
 export async function onRequest(context) {
@@ -176,8 +246,30 @@ export async function onRequest(context) {
 
     if (!String(finalReg || "").trim()) return errorJson(400, "registration_deadline_at is required");
     if (!isYMD(finalReg)) return errorJson(400, "registration_deadline_at must be YYYY-MM-DD");
+    if (!isValidYMD(finalReg)) return errorJson(400, "registration_deadline_at is not a real calendar date");
     if (finalSub && !isYMD(finalSub)) return errorJson(400, "submission_deadline_at must be YYYY-MM-DD or null");
+    if (finalSub && !isValidYMD(finalSub)) return errorJson(400, "submission_deadline_at is not a real calendar date");
     if (finalRes && !isYMD(finalRes)) return errorJson(400, "result_deadline_at must be YYYY-MM-DD or null");
+    if (finalRes && !isValidYMD(finalRes)) return errorJson(400, "result_deadline_at is not a real calendar date");
+
+    const regT = ymdTime(finalReg);
+    const subT = finalSub ? ymdTime(finalSub) : null;
+    const resT = finalRes ? ymdTime(finalRes) : null;
+    if (regT === null) return errorJson(400, "registration_deadline_at is invalid");
+    if (subT !== null && subT < regT) return errorJson(400, "submission_deadline_at must be on/after registration_deadline_at");
+    if (resT !== null && resT < regT) return errorJson(400, "result_deadline_at must be on/after registration_deadline_at");
+    if (subT !== null && resT !== null && resT < subT) return errorJson(400, "result_deadline_at must be on/after submission_deadline_at");
+
+    const changedKeys = diffCompetition(current, {
+      registration_deadline_at: finalReg,
+      submission_deadline_at: finalSub || null,
+      result_deadline_at: finalRes || null,
+      included_in_plan: finalIncluded,
+      registered: finalRegistered,
+      status_text: finalStatus,
+      team_members: finalTeam,
+      links: finalLinks,
+    });
 
     await db
       .prepare(
@@ -205,6 +297,23 @@ export async function onRequest(context) {
         JSON.stringify(finalLinks)
       )
       .run();
+
+    if (changedKeys.length) {
+      try {
+        const user = String(request.headers.get("x-mmc-user") || "").trim() || "本地用户";
+        const id2 = "al_" + crypto.randomUUID().replaceAll("-", "");
+        const iso = new Date().toISOString();
+        const details = summarizeChangedKeys(changedKeys);
+        await db
+          .prepare(
+            `INSERT INTO audit_logs (id, iso, user, action, target_type, target_id, target, details)\n             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)`
+          )
+          .bind(id2, iso, user, "update", "competition", id, String(current.name || id), details)
+          .run();
+      } catch {
+        // ignore audit logging failures (schema not migrated, etc.)
+      }
+    }
 
     const updated = await db
       .prepare(

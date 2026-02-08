@@ -1,13 +1,15 @@
 import type { Competition, CompetitionPatch } from "./types";
 import { getString, remove, setString } from "./storage";
 
-const STORAGE_PATCHES = "v2:competitionPatches";
+// v2 key is kept for backwards compatibility; v3 writes to its own key.
+const STORAGE_PATCHES_V2 = "v2:competitionPatches";
+const STORAGE_PATCHES_V3 = "v3:competitionPatches";
 
 type PatchMap = Record<string, CompetitionPatch>;
 
-function readPatchMap(): PatchMap {
+function safeParseMap(raw: string | null): PatchMap {
+  if (!raw) return {};
   try {
-    const raw = getString(STORAGE_PATCHES, "{}") || "{}";
     const obj = JSON.parse(raw);
     if (!obj || typeof obj !== "object") return {};
     return obj as PatchMap;
@@ -16,13 +18,30 @@ function readPatchMap(): PatchMap {
   }
 }
 
+function readPatchMap(): PatchMap {
+  // Merge v2 + v3 with v3 taking precedence.
+  const v3 = safeParseMap(getString(STORAGE_PATCHES_V3, "{}") || "{}");
+  const v2 = safeParseMap(getString(STORAGE_PATCHES_V2, "{}") || "{}");
+  const merged: PatchMap = { ...v2, ...v3 };
+
+  // One-time migration: if only v2 exists, write into v3 to make future ops consistent.
+  if (Object.keys(v3).length === 0 && Object.keys(v2).length > 0) {
+    try {
+      setString(STORAGE_PATCHES_V3, JSON.stringify(merged));
+    } catch {
+      // ignore
+    }
+  }
+  return merged;
+}
+
 function writePatchMap(map: PatchMap): void {
   const keys = Object.keys(map);
   if (keys.length === 0) {
-    remove(STORAGE_PATCHES);
+    remove(STORAGE_PATCHES_V3);
     return;
   }
-  setString(STORAGE_PATCHES, JSON.stringify(map));
+  setString(STORAGE_PATCHES_V3, JSON.stringify(map));
 }
 
 export function applyOfflinePatches(list: Competition[]): Competition[] {
@@ -37,3 +56,13 @@ export function upsertOfflinePatch(id: string, patch: CompetitionPatch): void {
   writePatchMap(next);
 }
 
+export function listOfflinePatches(): PatchMap {
+  return readPatchMap();
+}
+
+export function clearOfflinePatch(id: string): void {
+  const next: PatchMap = { ...readPatchMap() };
+  if (!next[id]) return;
+  delete next[id];
+  writePatchMap(next);
+}

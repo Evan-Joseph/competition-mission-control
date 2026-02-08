@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>竞赛详情 - 协作画板视图</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2beead",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#10221c",
+                        "surface-dark": "#162e26",
+                        "surface-darker": "#0d1b17",
+                        "accent-yellow": "#fffbeb",
+                        "accent-pink": "#fce7f3",
+                        "accent-blue": "#e0f2fe",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans SC", "sans-serif"],
+                        "body": ["Noto Sans SC", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Dot grid pattern for whiteboard */
+        .bg-grid-pattern {
+            background-image: radial-gradient(#3b544b 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        
+        /* Custom scrollbar to match dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10221c; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #283933; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b544b; 
+        }
+
+        .cursor-pointer-custom {
+            pointer-events: none;
+            position: absolute;
+            z-index: 50;
+        }
+        
+        /* Handwriting font simulation for sticky notes */
+        .font-handwriting {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Fallback for demo */
+        }
+    </style>
+</head>
+<body class="bg-background-dark font-display text-white overflow-hidden h-screen w-screen flex">
+<!-- Background Layer (Simulating the List View underneath) -->
+<div class="fixed inset-0 z-0 flex flex-col opacity-30 pointer-events-none filter blur-[2px]">
+<!-- Fake Header -->
+<div class="h-16 border-b border-[#283933] flex items-center px-8 bg-surface-darker">
+<div class="w-8 h-8 rounded-full bg-[#283933] mr-4"></div>
+<div class="h-4 w-48 bg-[#283933] rounded"></div>
+</div>
+<!-- Fake List Content -->
+<div class="p-8 space-y-4">
+<div class="h-12 w-full bg-[#1c2e28] rounded-lg"></div>
+<div class="h-12 w-full bg-[#1c2e28] rounded-lg"></div>
+<div class="h-12 w-full bg-[#1c2e28] rounded-lg"></div>
+<div class="h-12 w-full bg-[#1c2e28] rounded-lg"></div>
+<div class="h-12 w-full bg-[#1c2e28] rounded-lg"></div>
+</div>
+</div>
+<!-- Drawer Overlay -->
+<div class="relative z-10 flex w-full h-full justify-end bg-black/50 backdrop-blur-sm">
+<!-- Main Drawer Container -->
+<div class="w-[95%] md:w-[85%] lg:w-[80%] h-full bg-surface-dark border-l border-[#283933] shadow-2xl flex flex-col rounded-l-2xl overflow-hidden animate-slide-in-right">
+<!-- Drawer Header -->
+<div class="h-auto min-h-[80px] border-b border-[#283933] bg-surface-darker/90 backdrop-blur-md flex flex-col z-20">
+<!-- Top Row: Title & Actions -->
+<div class="flex items-center justify-between px-6 pt-5 pb-2">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<h1 class="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-3">
+                                第十五届大学生创新创业大赛
+                                <span class="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-medium border border-primary/30">进行中</span>
+</h1>
+<p class="text-gray-400 text-sm mt-1">创建于 2024年3月15日 · 团队负责人: 李明</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<!-- Collaborators -->
+<div class="flex items-center -space-x-2 mr-4">
+<div class="relative group cursor-pointer">
+<img class="w-8 h-8 rounded-full border-2 border-surface-darker object-cover" data-alt="User Avatar Sarah" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQgnx-yAWJbiqBuOIp_llghXTdrK3DkQMW_E9EusI4s0-zrOqG6sZibGfhW0jHJV6A6FRnRNS6czkTz0T350RtGsex9vvHhfuh565I-jIWHoAmoeL917cAPIvZ_f9L1eBtQdovdyP_0MQ2s69fc2i-BOqBpNc3qYX_OiVcESH4TEWvsPgerA3f_Zmc1481pX4Pq9gGnKGdvuv6gCfZ3hYEZAF9nb98VZuaArh-rS9mk5oZbSiYGPnZf5cNcD4s0xfL8af0qqvNYsE"/>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-surface-darker rounded-full"></div>
+</div>
+<div class="relative group cursor-pointer">
+<img class="w-8 h-8 rounded-full border-2 border-surface-darker object-cover" data-alt="User Avatar Mike" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRddb4ehlFVv60PFwyaxD9YSscvJnM3SY476Qip9c3B93DBZ_9a2Wg59j894h25KrUoiGVjqVNqGk_rIaZ60tT3Pw3PHtDZl8M73aBtpfh9a0H9Ltvx1-pAmfEWN77_nfMr88pkVV6avsI90UduvPRNEJL-1G05sHfTnvEDQDk6Hdu8TMzxUMNdcSaC2f9Oj3Lmm-9HbZEl5PjJNg_VyWw8BMI9C2cCZrgERtTd8bdv7-AYsAkYoMCeMVNJ4li1TA1gTgS0tXgo7Q"/>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-blue-500 border-2 border-surface-darker rounded-full"></div>
+</div>
+<div class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-surface-darker bg-[#283933] text-xs font-medium text-gray-300">
+                                +3
+                            </div>
+</div>
+<button class="flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-primary text-background-dark font-semibold text-sm hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+<span>邀请协作</span>
+</button>
+<div class="h-6 w-px bg-[#3b544b] mx-1"></div>
+<button class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-[#283933] transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+<button class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-[#283933] transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<!-- Bottom Row: Tabs -->
+<div class="flex px-6 gap-8 mt-2">
+<button class="pb-3 text-gray-400 text-sm font-medium hover:text-white transition-colors relative group">
+                        概览
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent group-hover:bg-gray-600 transition-colors"></span>
+</button>
+<button class="pb-3 text-primary text-sm font-bold relative">
+                        画板
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary shadow-[0_0_8px_rgba(43,238,173,0.6)]"></span>
+</button>
+<button class="pb-3 text-gray-400 text-sm font-medium hover:text-white transition-colors relative group">
+                        文件
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent group-hover:bg-gray-600 transition-colors"></span>
+</button>
+<button class="pb-3 text-gray-400 text-sm font-medium hover:text-white transition-colors relative group">
+                        动态
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent group-hover:bg-gray-600 transition-colors"></span>
+</button>
+</div>
+</div>
+<!-- Content Area: Infinite Whiteboard -->
+<div class="flex-1 relative overflow-hidden bg-background-dark bg-grid-pattern cursor-grab active:cursor-grabbing">
+<!-- Floating Toolbar (Bottom Center) -->
+<div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-40">
+<div class="flex items-center gap-1 p-1.5 bg-surface-darker/80 backdrop-blur-xl border border-[#3b544b] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+<button class="p-2.5 rounded-full bg-primary text-background-dark shadow-sm">
+<span class="material-symbols-outlined text-[20px]">near_me</span> <!-- Select tool -->
+</button>
+<button class="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-[#283933] transition-colors tooltip" title="Hand Tool">
+<span class="material-symbols-outlined text-[20px]">pan_tool</span>
+</button>
+<div class="w-px h-6 bg-[#3b544b] mx-1"></div>
+<button class="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-[#283933] transition-colors">
+<span class="material-symbols-outlined text-[20px]">sticky_note_2</span>
+</button>
+<button class="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-[#283933] transition-colors">
+<span class="material-symbols-outlined text-[20px]">shapes</span>
+</button>
+<button class="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-[#283933] transition-colors">
+<span class="material-symbols-outlined text-[20px]">ink_pen</span>
+</button>
+<button class="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-[#283933] transition-colors">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</button>
+<div class="w-px h-6 bg-[#3b544b] mx-1"></div>
+<button class="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-[#283933] transition-colors">
+<span class="material-symbols-outlined text-[20px]">undo</span>
+</button>
+<button class="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-[#283933] transition-colors">
+<span class="material-symbols-outlined text-[20px]">redo</span>
+</button>
+</div>
+</div>
+<!-- Zoom Controls (Bottom Right) -->
+<div class="absolute bottom-8 right-8 z-40 flex items-center gap-2 bg-surface-darker/80 backdrop-blur border border-[#3b544b] p-1.5 rounded-lg shadow-lg">
+<button class="p-1 text-gray-400 hover:text-white"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="text-xs font-mono text-gray-300 w-10 text-center">85%</span>
+<button class="p-1 text-gray-400 hover:text-white"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+<!-- Whiteboard Elements Layer -->
+<div class="absolute inset-0 transform scale-[0.85] origin-center translate-x-12 translate-y-8">
+<!-- Element 1: Sticky Note (Yellow) -->
+<div class="absolute top-20 left-40 w-64 h-64 bg-[#fef08a] text-yellow-900 p-6 rounded-sm shadow-xl transform -rotate-2 hover:scale-105 transition-transform cursor-pointer group">
+<div class="flex justify-between items-start mb-2 opacity-50">
+<span class="material-symbols-outlined text-[20px]">push_pin</span>
+</div>
+<p class="font-handwriting text-lg leading-relaxed font-medium">
+                            我们需要重新评估底盘结构的稳定性，目前的承重测试数据不太理想。
+                        </p>
+<div class="absolute bottom-4 left-4 flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-[10px] font-bold">L</div>
+<span class="text-xs text-yellow-900/60 font-mono">刚刚</span>
+</div>
+<!-- Selection Border (Hidden by default, shown on active) -->
+<div class="absolute inset-0 border-2 border-primary opacity-0 group-hover:opacity-100 rounded-sm pointer-events-none"></div>
+</div>
+<!-- Element 2: Image with Annotations -->
+<div class="absolute top-32 left-[450px] w-[400px] bg-white p-2 rounded-lg shadow-2xl transform rotate-1 group">
+<div class="relative rounded overflow-hidden">
+<img class="w-full h-auto object-cover" data-alt="Engineering Blueprint Sketch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATYxxNKpExF47GEt4QU3fuZyc0d8F9wVa0i39XfE0TniLeycqU4xTZavq9pEwBqRPF9SpPuFnIWIMeUv98sc8xHpiSgBRdq4nePuP5xuFP-Wfrtc7fjZN-91ZwO_hAmTQeTVKHmIZOfJrLsDf8Fy6xAZhR94fy34JQcr9z_gIfnVNgTAftlf26Uhe5NkqoH0kkvIf_MMfagQLNSuU6wZ_YmEZF0PTLV2jZGe8QybmZlFznTvNyeO6SOVEZ1UDjd5oBxRCHASCePNM"/>
+<!-- Annotations SVG Overlay -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none">
+<circle cx="60%" cy="40%" fill="none" r="40" stroke="#ef4444" stroke-dasharray="5,5" stroke-width="3"></circle>
+<path d="M 60% 40% L 85% 20%" fill="none" marker-end="url(#arrowhead)" stroke="#ef4444" stroke-width="3"></path>
+</svg>
+<!-- Annotation Note -->
+<div class="absolute top-[10%] right-[5%] bg-red-500 text-white text-xs px-2 py-1 rounded shadow-lg">
+                                关键节点
+                            </div>
+</div>
+<!-- Selection Box -->
+<div class="absolute -inset-2 border-2 border-blue-500 opacity-0 group-hover:opacity-100 rounded-xl pointer-events-none flex justify-between items-start">
+<div class="w-2 h-2 bg-blue-500 rounded-full -translate-x-1 -translate-y-1"></div>
+<div class="w-2 h-2 bg-blue-500 rounded-full translate-x-1 -translate-y-1"></div>
+</div>
+</div>
+<!-- Element 3: Link Preview Card -->
+<div class="absolute top-[450px] left-[150px] w-80 bg-surface-dark border border-[#3b544b] rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow cursor-pointer group">
+<div class="h-32 bg-gray-800 relative">
+<img class="w-full h-full object-cover opacity-80" data-alt="Video thumbnail preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFYkR9fsK8saIiT2WMQPMzL6g-ZcW6hnwTnPMEQStkUHiVEZ-LhERGKODIpXwif5gr_VkIjuLzhi9G0wPIZOWTOsrVufduhNxHC_yPUSA4pv3qlSOgqth4r-xECZvPV9mz1NlGHvQVQDxmeyxSFna03GNXUE47rfl9Ph-PC7n7q4I0qDydhcPXD92uJYvCkxDUow-YYWW4K1kjzL9XgjLq95ej02gUi3qDo2roCP71tyR-jckX7gKVnLYc0IM8OyAfvoY0y-yHyq8"/>
+<div class="absolute inset-0 flex items-center justify-center bg-black/20">
+<div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+<span class="material-symbols-outlined text-white">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-[#ff7ad0] text-sm">smart_display</span>
+<span class="text-xs text-gray-400">Bilibili · 参考资料</span>
+</div>
+<h3 class="font-bold text-white text-sm line-clamp-2 mb-2">2023 Robomaster 机甲大师赛 - 工程机器人技术解析</h3>
+<p class="text-xs text-gray-500 line-clamp-1">这是去年的冠军队伍分享的技术细节...</p>
+</div>
+<div class="absolute inset-0 border-2 border-primary opacity-0 group-hover:opacity-100 rounded-xl pointer-events-none"></div>
+</div>
+<!-- Element 4: Sticky Note (Blue) -->
+<div class="absolute top-[400px] left-[580px] w-56 h-56 bg-[#bae6fd] text-blue-900 p-5 rounded-sm shadow-xl transform rotate-3 hover:scale-105 transition-transform cursor-pointer">
+<div class="flex justify-between items-start mb-2 opacity-50">
+<span class="material-symbols-outlined text-[20px]">push_pin</span>
+</div>
+<p class="font-handwriting text-lg leading-relaxed font-medium">
+                            @王强 记得周五前把 PPT 的大纲发到群里确认。
+                        </p>
+<div class="absolute bottom-4 left-4 flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px] font-bold">S</div>
+</div>
+</div>
+<!-- Element 5: File Card -->
+<div class="absolute top-[150px] left-[900px] w-64 bg-surface-darker border border-[#3b544b] p-3 rounded-lg flex items-center gap-3 shadow-lg group hover:border-primary/50 transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded bg-red-500/20 flex items-center justify-center text-red-400">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-medium text-white truncate">项目初稿_v2.pdf</p>
+<p class="text-xs text-gray-500">2.4 MB · 昨天</p>
+</div>
+<button class="text-gray-400 hover:text-white"><span class="material-symbols-outlined">download</span></button>
+</div>
+<!-- Connector Lines (SVG) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+<defs>
+<marker id="arrowhead" markerheight="7" markerwidth="10" orient="auto" refx="0" refy="3.5">
+<polygon fill="#6b7280" points="0 0, 10 3.5, 0 7"></polygon>
+</marker>
+</defs>
+<!-- Curve from Note 1 to Image -->
+<path d="M 420 300 Q 480 320 500 350" fill="none" marker-end="url(#arrowhead)" opacity="0.5" stroke="#6b7280" stroke-dasharray="4,4" stroke-width="2"></path>
+</svg>
+<!-- Collaborator Cursors -->
+<!-- Cursor 1 -->
+<div class="cursor-pointer-custom top-[280px] left-[520px] transition-all duration-1000 ease-in-out animate-pulse">
+<svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19177L11.7841 12.3673H5.65376Z" fill="#ec4899" stroke="white"></path>
+</svg>
+<div class="ml-4 -mt-2 px-2 py-0.5 bg-pink-500 text-white text-[10px] rounded font-bold whitespace-nowrap shadow-sm">
+                            Sarah (Designer)
+                        </div>
+</div>
+<!-- Cursor 2 -->
+<div class="cursor-pointer-custom top-[480px] left-[200px] transition-all duration-700 ease-linear">
+<svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19177L11.7841 12.3673H5.65376Z" fill="#3b82f6" stroke="white"></path>
+</svg>
+<div class="ml-4 -mt-2 px-2 py-0.5 bg-blue-500 text-white text-[10px] rounded font-bold whitespace-nowrap shadow-sm">
+                            Mike
+                        </div>
+</div>
+</div>
+</div>
+<!-- Contextual Sidebar (Mini-map / Layers - Optional but nice for density) -->
+<!-- We will omit a full sidebar for cleaner UI as requested, but maybe a small floating indicator -->
+</div>
+</div>
+</body></html>

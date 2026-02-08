@@ -1,4 +1,4 @@
-# 竞赛规划看板（V2）
+# 竞赛规划看板（V3）
 
 目标：在可免费部署到 Cloudflare Pages 的前提下，将竞赛统一为「时间点里程碑」，并提供两种视图：
 - 列表视图（议程事件流）
@@ -9,21 +9,11 @@
 - V2 Stitch 原型（从 `看板原型V2.zip` 提取）：`prototype/v2/`
 - 旧原型：`prototype/stitch/`
 
-## 本地开发
+## 本地开发（前后端联调）
 
-### 1) 仅前端（推荐，离线种子数据）
+当前版本默认要求走真实 `/api/*`，不再使用前端 seed/mock 兜底。
 
-```bash
-npm install
-npm run build:seed
-npm run dev
-```
-
-说明：
-- `npm run dev` 不依赖 Pages Functions；会自动读取 `public/data/competitions.seed.json` 作为离线兜底数据。
-- 在无 `/api/*` 的情况下，编辑保存会写入本地 `localStorage`（仅本机有效）。
-
-### 2) 带 Pages Functions + D1（可选）
+### Pages Functions + D1
 
 1. 初始化 D1 表
 
@@ -45,7 +35,9 @@ npm run build
 npx wrangler pages dev dist --d1 DB=<你的DB名>
 ```
 
-提示：`npm run dev`(Vite) 和 `wrangler pages dev` 是两条不同的本地开发路径。
+提示：
+- `npm run dev` 仅启动 Vite 静态前端，不包含 Pages Functions，页面会提示“后端连接不可用”。
+- 联调请使用 `wrangler pages dev`。
 
 ## 数据模型（前后端一致）
 
@@ -77,7 +69,7 @@ npm run build:seed
 ```
 
 输出：
-- `public/data/competitions.seed.json`（前端离线兜底）
+- `public/data/competitions.seed.json`（仅作数据快照，不作为运行时数据源）
 - `db/seed_competitions.sql`（D1 种子）
 - `reports/competitions.import.report.json`（清洗/修正/跳过/冲突报告）
 
@@ -110,7 +102,7 @@ Pages 环境变量/密钥：
 
 ## 自测清单
 
-1. `npm run dev`：能展示离线种子数据，不是空白页
+1. `wrangler pages dev dist --d1 DB=<你的DB名>`：前后端联调可正常展示竞赛列表
 2. 响应式：任意宽度无控件溢出；主内容区域内滚动；页面不无限变长
 3. 视图：仅列表 + 日历（月/周），切换正常
 4. missed：`报名截止 < 今天 && registered=false` 被判定为 missed，默认隐藏，可切换显示
@@ -119,4 +111,3 @@ Pages 环境变量/密钥：
 7. 日历：月格点击进入周视图；周视图 7 列全天事件
 8. AI：可发送消息；能展示行动卡片；确认后更新 UI（有 Functions+D1 时写入 DB）
 9. `npm run build`：构建通过
-
