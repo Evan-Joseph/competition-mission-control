@@ -1,113 +1,131 @@
-# 竞赛规划看板（V3）
+# 🚀 Competition Mission Control
 
-目标：在可免费部署到 Cloudflare Pages 的前提下，将竞赛统一为「时间点里程碑」，并提供两种视图：
-- 列表视图（议程事件流）
-- 日历视图（仅 月/周）
+<p align="center">
+  <b>A Serverless Competition Planning & Milestone Dashboard</b><br>
+  基于 Vite + React + Cloudflare Pages Functions + Cloudflare D1 的无服务器学科竞赛与项目里程碑中控面板
+</p>
 
-## 原型
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black" alt="React 18">
+  <img src="https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/Cloudflare_Pages-Edge%20Functions-F38020?logo=cloudflarepages&logoColor=white" alt="Cloudflare Pages">
+  <img src="https://img.shields.io/badge/Cloudflare_D1-Serverless%20SQLite-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare D1">
+  <img src="https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
+</p>
 
-- V2 Stitch 原型（从 `看板原型V2.zip` 提取）：`prototype/v2/`
-- 旧原型：`prototype/stitch/`
+---
 
-## 本地开发（前后端联调）
+## 📖 项目简介 (Overview)
 
-当前版本默认要求走真实 `/api/*`，不再使用前端 seed/mock 兜底。
+**Competition Mission Control** 专为多线程学术竞赛备赛团队、科研项目组打造的里程碑与日程规划看板。
 
-### Pages Functions + D1
+传统表格管理容易漏交材料、错过报名窗口或出现多端同步延迟。本项目利用 **Cloudflare 全球边缘网络（Pages + Functions + D1 分布式 SQLite）** 构建了极低延迟、零服务器运维成本的看板。系统支持日程事件流与月/周日历双重视图，并内嵌大模型 Copilot 提供竞赛检索与行动卡片建议。
 
-1. 初始化 D1 表
+---
 
-```bash
-npx wrangler d1 execute <你的DB名> --file=db/schema.sql
+## 🌟 核心特性 (Key Features)
+
+- **📅 双重视图联动**：
+  - **议程时间流 (Agenda Stream)**：按紧迫程度动态分组（Overdue / Today / This Week / This Month / Later），智能判定并收敛已错过窗口的竞赛条目。
+  - **交互式日历 (Month & Week Views)**：月视图纵览全局关键节点，点击无缝下钻至 7 日精确全天事件流。
+- **⚡ 纯边缘 Serverless 架构**：
+  - 前端由 Cloudflare Pages 全球 CDN 加速交付。
+  - 后端业务逻辑经由 Pages Functions 运行于 V8 隔离区，零冷启动延迟。
+  - 数据由 Cloudflare D1 (Serverless SQLite) 持久化存储。
+- **🤖 内置 AI 助理 (GLM-4 / Search)**：
+  - 接入大模型自然语言交互，支持竞赛规则解析与日程建议。
+  - AI 生成结构化“行动卡片”，经人工审核确认后单击直连写入 D1 数据库。
+- **🧹 自动化 CSV 清洗与种子导入**：
+  - 内置基于 Node.js 的清洗流水线，自动规范日期格式、去重合并并生成可复现的 SQL 迁移种子。
+
+---
+
+## 🏛️ 系统架构 (Architecture)
+
+```mermaid
+graph TD
+    User["👤 开发者 / 参赛队员"] -->|访问边缘节点| Pages["🌐 Cloudflare Pages (Vite + React)"]
+    
+    subgraph Cloudflare Edge Infrastructure
+      Pages -->|/api/* 动态请求| Functions["⚡ Pages Functions (TypeScript / Edge Runtime)"]
+      Functions -->|SQL 操作| D1["💾 Cloudflare D1 (Serverless SQLite)"]
+      Functions -->|LLM API / 搜索增强| AI["🤖 GLM-4 / Bocha Search Adapter"]
+    end
 ```
 
-2. 生成并导入竞赛种子
+---
 
-```bash
-npm run build:seed
-npx wrangler d1 execute <你的DB名> --file=db/seed_competitions.sql
+## 📦 项目结构 (Directory Structure)
+
+```text
+competition-mission-control/
+├── db/                     # D1 数据库定义与种子 SQL
+│   ├── schema.sql          # 竞赛里程碑与队伍表结构
+│   └── seed_competitions.sql
+├── functions/              # Cloudflare Pages Functions (API 路由)
+│   └── api/                # /api/competitions CRUD 与 AI 对话端点
+├── src/                    # 前端源码
+│   ├── components/         # 议程列表、日历网格、侧边抽屉、AI 对话浮窗
+│   ├── hooks/              # 数据请求与过滤 Hook
+│   └── types/              # 竞赛数据模型与 TypeScript 接口定义
+├── scripts/                # CSV 清洗与 SQL 种子生成脚本
+└── wrangler.toml           # Cloudflare 绑定配置
 ```
 
-3. 本地跑 Pages（Functions + 静态站点）
+---
+
+## 🚀 快速开始 (Quickstart)
+
+### 1. 安装依赖
+
+```bash
+git clone https://github.com/Evan-Joseph/competition-mission-control.git
+cd competition-mission-control
+npm install
+```
+
+### 2. 本地数据库初始化
+
+利用 Cloudflare 官方 CLI `wrangler` 初始化本地 D1 数据库：
+
+```bash
+# 初始化表结构
+npx wrangler d1 execute competitions-db --local --file=db/schema.sql
+
+# 导入初始种子数据
+npx wrangler d1 execute competitions-db --local --file=db/seed_competitions.sql
+```
+
+### 3. 本地边缘联调
 
 ```bash
 npm run build
-npx wrangler pages dev dist --d1 DB=<你的DB名>
+npx wrangler pages dev dist --d1 DB=competitions-db --local
 ```
 
-提示：
-- `npm run dev` 仅启动 Vite 静态前端，不包含 Pages Functions，页面会提示“后端连接不可用”。
-- 联调请使用 `wrangler pages dev`。
+打开终端输出的本地端口（通常为 `http://localhost:8788`），即可测试完整前后端与边缘数据库联动。
 
-## 数据模型（前后端一致）
+---
 
-每条竞赛字段：
-- `id` (string)
-- `name` (string)
-- `registration_deadline_at` (`YYYY-MM-DD`，必填)
-- `submission_deadline_at` (`YYYY-MM-DD | null`)
-- `result_deadline_at` (`YYYY-MM-DD | null`)
-- `included_in_plan` (boolean)
-- `registered` (boolean)
-- `status_text` (string，可空)
-- `team_members` (string[]，JSON 数组)
-- `links` (`{title:string,url:string}`[]，JSON 数组，可为空)
+## ☁️ 部署到 Cloudflare Pages (Deploy to Cloudflare)
 
-派生（不入库）：
-- `is_missed_registration`: `registration_deadline_at < today` 且 `registered=false`
+1. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 中新建 D1 数据库：
+   ```bash
+   npx wrangler d1 create competitions-db
+   ```
+2. 绑定至 Cloudflare Pages 项目：
+   - **Build Command**: `npm run build`
+   - **Build output directory**: `dist`
+   - **Functions directory**: `functions`
+   - **D1 Database Binding**: 变量名设为 `DB`，绑定至 `competitions-db`。
+3. 配置环境变量（可选 AI 特性）：
+   - `GLM_API_KEY`: 智谱清言 API Key
+   - `GLM_MODEL`: `glm-4.7-flash` (或兼容模型)
 
-## CSV 清洗/导入
+---
 
-输入（仓库根目录，文件名以 `final` 结尾）：
-- `active_competitions_final.csv`
-- `archive_missed_competitions_final.csv`
+## 📄 开源许可证 (License)
 
-运行：
-
-```bash
-npm run build:seed
-```
-
-输出：
-- `public/data/competitions.seed.json`（仅作数据快照，不作为运行时数据源）
-- `db/seed_competitions.sql`（D1 种子）
-- `reports/competitions.import.report.json`（清洗/修正/跳过/冲突报告）
-
-导入规则摘要：
-- 日期统一为 `YYYY-MM-DD`（若是 ISO datetime，会截取前 10 位）
-- 若报名截止缺失，会回退到提交截止/结果公布；三者全缺失则跳过并记录在报告
-- 去重：按 `sha1(name|registration_deadline_at)` 生成稳定 `id`，重复会合并并记录
-
-## AI 助手（GLM）
-
-Pages 环境变量/密钥：
-- `GLM_API_KEY`（必填）
-- `GLM_MODEL`（默认：`glm-4.7-flash`）
-- `GLM_API_BASE_URL`（默认：`https://open.bigmodel.cn/api/paas/v4/chat/completions`）
-
-可选（联网搜索）：
-- `BOCHA_API_KEY`
-
-说明：
-- 默认上下文仅包含「有效竞赛」（排除 missed）；可在面板中切换“包含已错过”
-- AI 返回“行动卡片”，用户确认后才会写入看板（调用 `/api/competitions/:id`）
-- AI 不会真实报名/提交
-
-## 部署到 Cloudflare Pages
-
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Functions directory: `functions`
-- D1 binding: `DB`（见 `wrangler.toml`）
-
-## 自测清单
-
-1. `wrangler pages dev dist --d1 DB=<你的DB名>`：前后端联调可正常展示竞赛列表
-2. 响应式：任意宽度无控件溢出；主内容区域内滚动；页面不无限变长
-3. 视图：仅列表 + 日历（月/周），切换正常
-4. missed：`报名截止 < 今天 && registered=false` 被判定为 missed，默认隐藏，可切换显示
-5. 列表分组：overdue/today/this week/this month/later
-6. 抽屉：打开/关闭（Esc、遮罩点击）、`?open=<id>` 深链接；编辑校验与保存
-7. 日历：月格点击进入周视图；周视图 7 列全天事件
-8. AI：可发送消息；能展示行动卡片；确认后更新 UI（有 Functions+D1 时写入 DB）
-9. `npm run build`：构建通过
+本项目采用 [MIT License](LICENSE) 开源。
