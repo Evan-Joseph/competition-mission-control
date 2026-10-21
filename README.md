@@ -1,7 +1,7 @@
-# 🚀 Competition Mission Control
+# 🚀 竞赛规划看板 (Competition Mission Control)
 
 <p align="center">
-  <b>A Serverless Competition Planning & Milestone Dashboard</b><br>
+  <b>A Serverless Competition Planning &amp; Milestone Dashboard</b><br>
   基于 Vite + React + Cloudflare Pages Functions + Cloudflare D1 的无服务器学科竞赛与项目里程碑中控面板
 </p>
 
@@ -25,23 +25,23 @@
 
 ---
 
-## 🌟 核心特性与多视图矩阵 (Interface Matrix)
+## 🌟 核心特性与多视图矩阵 (Interface Matrix · v3 统一分辨率 1600x1280)
 
-| 📅 议程流与时间线视图 (Timeline & Agenda) | 📋 竞赛详情与交付物抽屉 (Detail Drawer) |
+| 📅 议程流与时间线视图 (Timeline & Agenda) | 📝 战术规划白板与头脑风暴 (Whiteboard) |
 | :---: | :---: |
-| <img src="prototype/v3/stitch-pages/timeline/screen.png" width="380" alt="Timeline View" /> | <img src="prototype/stitch/competition_detailed_view_drawer/screen.png" width="380" alt="Detail Drawer" /> |
-| **紧迫度动态聚合**：按 Overdue / Today / This Week / Later 自动归集关键节点，支持日历/时间流双模一键切换。 | **全周期信息沉淀**：赛题要求、队员分工、申报进度、官方入口直达链接与历史评审材料统一收纳。 |
+| <img src="prototype/v3/stitch-pages/timeline/screen.png" width="380" alt="Timeline View" style="border-radius: 10px;" /> | <img src="prototype/v3/stitch-pages/whiteboard/screen.png" width="380" alt="Planning Whiteboard" style="border-radius: 10px;" /> |
+| **紧迫度动态聚合**：按 Overdue / Today / This Week / Later 自动归集关键节点，支持日历/时间流双模一键切换。 | **团队协作画板**：围绕重点竞赛头脑风暴、破题思路梳理与技术路线白板草图绘制。 |
 
-| 🤖 AI 智能规划副驾 (AI Action Cards) | 📱 移动端自适应响应 (Mobile Optimized) |
+| 📜 变更审计日志与历史回溯 (Audit Log) | 📱 移动端自适应响应 (Mobile Dashboard) |
 | :---: | :---: |
-| <img src="prototype/stitch/strategic_planning_assistant_view/screen.png" width="380" alt="AI Assistant View" /> | <img src="prototype/v3/stitch-pages/mobile-dashboard/screen.png" width="380" alt="Mobile Dashboard View" /> |
-| **规则解读与行动卡片**：集成大模型深度解析竞赛章程，生成结构化行动卡片，经人工确认直连写入 D1 数据库。 | **随时随地把控进度**：手机与平板端流畅流式布局，关键倒计时预警一眼即达。 |
+| <img src="prototype/v3/stitch-pages/audit-log/screen.png" width="380" alt="Audit Log" style="border-radius: 10px;" /> | <img src="prototype/v3/stitch-pages/mobile-dashboard/screen.png" width="380" alt="Mobile Dashboard View" style="border-radius: 10px;" /> |
+| **细粒度版本审计**：记录团队成员每次对赛题状态、截止日期、交付物变更的时间戳与操作人流水。 | **随时随地把控进度**：手机与平板端流式响应折叠，关键倒计时预警一眼即达。 |
 
 ---
 
 ## 📖 项目简介 (Overview)
 
-**Competition Mission Control** 专为多线程学术竞赛备赛团队、科研项目组打造的里程碑与日程规划看板。
+**竞赛规划看板 (Competition Mission Control)** 专为多线程学术竞赛备赛团队、科研项目组打造的里程碑与日程规划中枢。
 
 传统表格管理容易漏交材料、错过报名窗口或出现多端同步延迟。本项目利用 **Cloudflare 全球边缘网络（Pages + Functions + D1 分布式 SQLite）** 构建了极低延迟、零服务器运维成本的看板。系统支持日程事件流与月/周日历双重视图，并内嵌大模型 Copilot 提供竞赛检索与行动卡片建议。
 
@@ -51,7 +51,7 @@
 
 ```mermaid
 graph TD
-    User["👤 开发者 / 参赛队员"] -->|访问边缘节点| Pages["🌐 Cloudflare Pages (Vite + React)"]
+    User["👤 开发者 / 参赛队员"] -->|访问边缘节点| Pages["🌐 Cloudflare Pages (Vite + React 18)"]
     
     subgraph Cloudflare Edge Infrastructure
       Pages -->|/api/* 动态请求| Functions["⚡ Pages Functions (TypeScript / Edge Runtime)"]
@@ -62,7 +62,7 @@ graph TD
 
 ---
 
-## 📦 项目结构 (Directory Structure)
+## 📦 项目代码组织 (Directory Layout)
 
 ```text
 competition-mission-control/
@@ -72,10 +72,10 @@ competition-mission-control/
 ├── functions/              # Cloudflare Pages Functions (API 路由)
 │   └── api/                # /api/competitions CRUD 与 AI 对话端点
 ├── src/                    # 前端源码
-│   ├── components/         # 议程列表、日历网格、侧边抽屉、AI 对话浮窗
-│   ├── hooks/              # 数据请求与过滤 Hook
-│   └── types/              # 竞赛数据模型与 TypeScript 接口定义
-├── prototype/              # 高清设计稿与界面实测截图 (UI Assets)
+│   ├── ui/v3/              # v3 核心页面与组件 (Dashboard, Timeline, Whiteboard, Audit)
+│   ├── lib/                # 离线缓存、D1 API 客户端与时间工具
+│   └── domain/             # 竞赛事件流、日程计算与审计模型
+├── prototype/v3/           # v3 高清统一实机截图 (1600x1280 统一分辨率)
 └── wrangler.toml           # Cloudflare 绑定配置
 ```
 
@@ -103,7 +103,7 @@ npx wrangler d1 execute competitions-db --local --file=db/schema.sql
 npx wrangler d1 execute competitions-db --local --file=db/seed_competitions.sql
 ```
 
-### 3. 本地边缘联调
+### 3. 本地边缘联调与构建
 
 ```bash
 npm run build
