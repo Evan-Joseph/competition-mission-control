@@ -17,28 +17,33 @@
 
 ---
 
+## 🖥️ 核心控制台全景 (Dashboard Overview)
+
+<p align="center">
+  <img src="prototype/v3/stitch-pages/dashboard/screen.png" width="100%" alt="Competition Mission Control Dashboard Overview" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);" />
+</p>
+
+---
+
+## 🌟 核心特性与多视图矩阵 (Interface Matrix)
+
+| 📅 议程流与时间线视图 (Timeline & Agenda) | 📋 竞赛详情与交付物抽屉 (Detail Drawer) |
+| :---: | :---: |
+| <img src="prototype/v3/stitch-pages/timeline/screen.png" width="380" alt="Timeline View" /> | <img src="prototype/stitch/competition_detailed_view_drawer/screen.png" width="380" alt="Detail Drawer" /> |
+| **紧迫度动态聚合**：按 Overdue / Today / This Week / Later 自动归集关键节点，支持日历/时间流双模一键切换。 | **全周期信息沉淀**：赛题要求、队员分工、申报进度、官方入口直达链接与历史评审材料统一收纳。 |
+
+| 🤖 AI 智能规划副驾 (AI Action Cards) | 📱 移动端自适应响应 (Mobile Optimized) |
+| :---: | :---: |
+| <img src="prototype/stitch/strategic_planning_assistant_view/screen.png" width="380" alt="AI Assistant View" /> | <img src="prototype/v3/stitch-pages/mobile-dashboard/screen.png" width="380" alt="Mobile Dashboard View" /> |
+| **规则解读与行动卡片**：集成大模型深度解析竞赛章程，生成结构化行动卡片，经人工确认直连写入 D1 数据库。 | **随时随地把控进度**：手机与平板端流畅流式布局，关键倒计时预警一眼即达。 |
+
+---
+
 ## 📖 项目简介 (Overview)
 
 **Competition Mission Control** 专为多线程学术竞赛备赛团队、科研项目组打造的里程碑与日程规划看板。
 
 传统表格管理容易漏交材料、错过报名窗口或出现多端同步延迟。本项目利用 **Cloudflare 全球边缘网络（Pages + Functions + D1 分布式 SQLite）** 构建了极低延迟、零服务器运维成本的看板。系统支持日程事件流与月/周日历双重视图，并内嵌大模型 Copilot 提供竞赛检索与行动卡片建议。
-
----
-
-## 🌟 核心特性 (Key Features)
-
-- **📅 双重视图联动**：
-  - **议程时间流 (Agenda Stream)**：按紧迫程度动态分组（Overdue / Today / This Week / This Month / Later），智能判定并收敛已错过窗口的竞赛条目。
-  - **交互式日历 (Month & Week Views)**：月视图纵览全局关键节点，点击无缝下钻至 7 日精确全天事件流。
-- **⚡ 纯边缘 Serverless 架构**：
-  - 前端由 Cloudflare Pages 全球 CDN 加速交付。
-  - 后端业务逻辑经由 Pages Functions 运行于 V8 隔离区，零冷启动延迟。
-  - 数据由 Cloudflare D1 (Serverless SQLite) 持久化存储。
-- **🤖 内置 AI 助理 (GLM-4 / Search)**：
-  - 接入大模型自然语言交互，支持竞赛规则解析与日程建议。
-  - AI 生成结构化“行动卡片”，经人工审核确认后单击直连写入 D1 数据库。
-- **🧹 自动化 CSV 清洗与种子导入**：
-  - 内置基于 Node.js 的清洗流水线，自动规范日期格式、去重合并并生成可复现的 SQL 迁移种子。
 
 ---
 
@@ -70,7 +75,7 @@ competition-mission-control/
 │   ├── components/         # 议程列表、日历网格、侧边抽屉、AI 对话浮窗
 │   ├── hooks/              # 数据请求与过滤 Hook
 │   └── types/              # 竞赛数据模型与 TypeScript 接口定义
-├── scripts/                # CSV 清洗与 SQL 种子生成脚本
+├── prototype/              # 高清设计稿与界面实测截图 (UI Assets)
 └── wrangler.toml           # Cloudflare 绑定配置
 ```
 
@@ -105,7 +110,7 @@ npm run build
 npx wrangler pages dev dist --d1 DB=competitions-db --local
 ```
 
-打开终端输出的本地端口（通常为 `http://localhost:8788`），即可测试完整前后端与边缘数据库联动。
+打开本地端口（通常为 `http://localhost:8788`），即可测试完整前后端与边缘数据库联动。
 
 ---
 
